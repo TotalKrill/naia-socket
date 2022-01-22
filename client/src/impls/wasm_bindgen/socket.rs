@@ -51,11 +51,7 @@ impl Socket {
 
         let packet_sender =
             PacketSender::new(data_channel.clone(), dropped_outgoing_messages.clone());
-        let packet_receiver = PacketReceiverImpl::new(
-            data_channel.clone(),
-            dropped_outgoing_messages.clone(),
-            message_queue.clone(),
-        );
+        let packet_receiver = PacketReceiverImpl::new(message_queue.clone());
 
         let sender = packet_sender.clone();
         let receiver: Box<dyn PacketReceiverTrait> = {
