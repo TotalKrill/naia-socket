@@ -9,3 +9,4 @@ members = [
     "demo/client/miniquad",
     "demo/dev_http_server"
     ]
+resolver = "2"
