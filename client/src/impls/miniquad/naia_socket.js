@@ -70,7 +70,7 @@ const naia_socket = {
                     peer.setRemoteDescription(new RTCSessionDescription(response.answer)).then(function() {
                         let candidate = new RTCIceCandidate(response.candidate);
                         peer.addIceCandidate(candidate).then(function() {
-                            //console.log("add ice candidate success");
+                            console.log("add ice candidate success");
                         }).catch(function(err) {
                             _this.error("error during 'addIceCandidate'", err);
                         });
@@ -78,11 +78,13 @@ const naia_socket = {
                         _this.error("error during 'setRemoteDescription'", err);
                     });
                 } else {
-                    _this.error("error sending POST /new_rtc_session request", { response_status: request.status });
+                    let error_str = "error sending POST request to " + SESSION_ADDRESS;
+                    _this.error(error_str, { response_status: request.status });
                 }
             };
             request.onerror = function(err) {
-                _this.error("error sending POST /new_rtc_session request", err);
+                let error_str = "error sending POST request to " + SESSION_ADDRESS;
+                _this.error(error_str, err);
             };
             request.send(peer.localDescription.sdp);
         }).catch(function(err) {
@@ -116,6 +118,7 @@ const naia_socket = {
                 this.channel.send(this.encoder.encode(str));
             }
             catch(err) {
+                _this.error("send_str() error. Adding to re-send queue.", evt.message);
                 this.dropped_outgoing_messages.push(str);
             }
         }
@@ -150,6 +153,7 @@ const naia_socket = {
                 this.channel.send(str);
             }
             catch(err) {
+                _this.error("send_u8_array() error. Adding to re-send queue.", evt.message);
                 this.dropped_outgoing_messages.push(Array.from(str));
             }
         }
