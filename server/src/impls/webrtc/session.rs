@@ -133,12 +133,15 @@ async fn serve(mut session_endpoint: SessionEndpoint, mut stream: Arc<Async<TcpS
                     let mut out = response_header_to_vec(&resp);
                     out.extend_from_slice(resp.body().as_bytes());
 
-                    info!("WebRTC session request from {}", remote_addr);
+                    info!("Successful WebRTC session request from {}", remote_addr);
 
                     stream.write_all(&out).await.unwrap();
                 }
                 Err(err) => {
-                    info!("error: {}", err);
+                    info!(
+                        "Invalid WebRTC session request from {}. Error: {}",
+                        remote_addr, err
+                    );
                 }
             }
         }
