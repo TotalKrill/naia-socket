@@ -27,7 +27,11 @@ const naia_socket = {
         let rtc_path_string = naia_socket.get_js_object(rtc_path);
         let SESSION_ADDRESS = "http://" + server_socket_address_string + "/" + rtc_path_string;
 
-        let peer = new RTCPeerConnection(null);
+        let peer = new RTCPeerConnection({
+            iceServers: [{
+                urls: ["stun:stun.l.google.com:19302"]
+            }]
+        });
 
         this.channel = peer.createDataChannel("data", {
             ordered: false,
@@ -45,6 +49,14 @@ const naia_socket = {
 
         this.channel.onerror = function(evt) {
             _this.error("data channel error", evt.message);
+        };
+
+        peer.onicecandidate = function(evt) {
+            if (evt.candidate) {
+                console.log("received ice candidate", evt.candidate);
+            } else {
+                console.log("all local candidates received");
+            }
         };
 
         peer.createOffer().then(function(offer) {

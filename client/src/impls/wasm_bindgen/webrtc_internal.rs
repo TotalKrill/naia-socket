@@ -6,7 +6,7 @@ use log::info;
 
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
 use web_sys::{
-    ErrorEvent, MessageEvent, ProgressEvent, RtcDataChannel, RtcDataChannelInit,
+    ErrorEvent, MessageEvent, ProgressEvent, RtcConfiguration, RtcDataChannel, RtcDataChannelInit,
     RtcDataChannelType, RtcIceCandidate, RtcIceCandidateInit, RtcPeerConnection, RtcSdpType,
     RtcSessionDescriptionInit, XmlHttpRequest,
 };
@@ -49,7 +49,13 @@ pub fn webrtc_initialize(
 ) -> RtcDataChannel {
     let server_url_str = format!("http://{}/{}", socket_address, rtc_endpoint_path);
 
-    let peer: RtcPeerConnection = RtcPeerConnection::new().unwrap();
+    let mut peer_config: RtcConfiguration = RtcConfiguration::new();
+    let ice_server_config = IceServerConfig {
+        urls: ["stun:stun.l.google.com:19302".to_string()],
+    };
+    let ice_server_config_list = [ice_server_config];
+    peer_config.ice_servers(&JsValue::from_serde(&ice_server_config_list).unwrap());
+    let peer: RtcPeerConnection = RtcPeerConnection::new_with_configuration(&peer_config).unwrap();
 
     let mut data_channel_config: RtcDataChannelInit = RtcDataChannelInit::new();
     data_channel_config.ordered(false);
@@ -117,39 +123,34 @@ pub fn webrtc_initialize(
                     let session_response_answer: SessionAnswer = session_response.answer.clone();
 
                     let peer_clone_4 = peer_clone_3.clone();
-                    let remote_desc_func: Box<dyn FnMut(JsValue)> = Box::new(
-                        move |e: JsValue| {
-                            let mut candidate_init_dict: RtcIceCandidateInit =
-                                RtcIceCandidateInit::new(
-                                    session_response.candidate.candidate.as_str(),
-                                );
-                            candidate_init_dict.sdp_m_line_index(Some(
-                                session_response.candidate.sdp_m_line_index,
-                            ));
-                            candidate_init_dict
-                                .sdp_mid(Some(session_response.candidate.sdp_mid.as_str()));
-                            let candidate: RtcIceCandidate =
-                                RtcIceCandidate::new(&candidate_init_dict).unwrap();
+                    let remote_desc_func: Box<dyn FnMut(JsValue)> = Box::new(move |e: JsValue| {
+                        let mut candidate_init_dict: RtcIceCandidateInit =
+                            RtcIceCandidateInit::new(session_response.candidate.candidate.as_str());
+                        candidate_init_dict
+                            .sdp_m_line_index(Some(session_response.candidate.sdp_m_line_index));
+                        candidate_init_dict
+                            .sdp_mid(Some(session_response.candidate.sdp_mid.as_str()));
+                        let candidate: RtcIceCandidate =
+                            RtcIceCandidate::new(&candidate_init_dict).unwrap();
 
-                            let peer_add_success_func: Box<dyn FnMut(JsValue)> =
-                                Box::new(move |_: JsValue| {
-                                    //Client add ice candidate success
-                                });
-                            let peer_add_success_callback = Closure::wrap(peer_add_success_func);
-                            let peer_add_failure_func: Box<dyn FnMut(JsValue)> =
-                                Box::new(move |_: JsValue| {
-                                    info!("Client error during 'addIceCandidate': {:?}", e);
-                                });
-                            let peer_add_failure_callback = Closure::wrap(peer_add_failure_func);
+                        let peer_add_success_func: Box<dyn FnMut(JsValue)> =
+                            Box::new(move |_: JsValue| {
+                                //Client add ice candidate success
+                            });
+                        let peer_add_success_callback = Closure::wrap(peer_add_success_func);
+                        let peer_add_failure_func: Box<dyn FnMut(JsValue)> =
+                            Box::new(move |_: JsValue| {
+                                info!("Client error during 'addIceCandidate': {:?}", e);
+                            });
+                        let peer_add_failure_callback = Closure::wrap(peer_add_failure_func);
 
-                            peer_clone_4.add_ice_candidate_with_rtc_ice_candidate_and_success_callback_and_failure_callback(
+                        peer_clone_4.add_ice_candidate_with_rtc_ice_candidate_and_success_callback_and_failure_callback(
                                 &candidate,
                                 peer_add_success_callback.as_ref().unchecked_ref(),
                                 peer_add_failure_callback.as_ref().unchecked_ref());
-                            peer_add_success_callback.forget();
-                            peer_add_failure_callback.forget();
-                        },
-                    );
+                        peer_add_success_callback.forget();
+                        peer_add_failure_callback.forget();
+                    });
                     let remote_desc_callback = Closure::wrap(remote_desc_func);
 
                     let mut rtc_session_desc_init_dict: RtcSessionDescriptionInit =
