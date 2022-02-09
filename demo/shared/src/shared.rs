@@ -2,8 +2,8 @@ use std::net::SocketAddr;
 
 use naia_socket_shared::{LinkConditionerConfig, SocketConfig};
 
-pub const PING_MSG: &str = "ping";
-pub const PONG_MSG: &str = "pong";
+pub const PING_MSG: &str = "PING";
+pub const PONG_MSG: &str = "PONG";
 
 pub fn get_server_address() -> SocketAddr {
     return "127.0.0.1:14191"
