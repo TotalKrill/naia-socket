@@ -15,6 +15,7 @@ module.exports = {
   },
   devServer: {
     contentBase: dist,
+    disableHostCheck: true,
   },
   plugins: [
     new CopyPlugin([

@@ -25,6 +25,7 @@ use-webrtc = [ "webrtc-unreliable", "async-dup", "http", "futures-core" ]
 [dependencies]
 naia-socket-shared = { path = "../shared", version = "=0.7.3" }
 log = { version = "0.4" }
+url = { version = "2.2.2" }
 cfg-if = { version = "0.1.10" }
 async-io = { version = "1.1" }
 async-trait = { version = "0.1.36" }

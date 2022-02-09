@@ -25,7 +25,7 @@ const naia_socket = {
         let _this = this;
         let server_socket_address_string = naia_socket.get_js_object(server_socket_address);
         let rtc_path_string = naia_socket.get_js_object(rtc_path);
-        let SESSION_ADDRESS = server_socket_address_string + "/" + rtc_path_string;
+        let SESSION_ADDRESS = server_socket_address_string + rtc_path_string;
 
         let peer = new RTCPeerConnection({
             iceServers: [{
@@ -118,7 +118,7 @@ const naia_socket = {
                 this.channel.send(this.encoder.encode(str));
             }
             catch(err) {
-                _this.error("send_str() error. Adding to re-send queue.", evt.message);
+                this.error("send_str() error. Adding to re-send queue.", err.message);
                 this.dropped_outgoing_messages.push(str);
             }
         }
@@ -153,7 +153,7 @@ const naia_socket = {
                 this.channel.send(str);
             }
             catch(err) {
-                _this.error("send_u8_array() error. Adding to re-send queue.", evt.message);
+                this.error("send_u8_array() error. Adding to re-send queue.", err.message);
                 this.dropped_outgoing_messages.push(Array.from(str));
             }
         }

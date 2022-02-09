@@ -2,12 +2,9 @@ extern crate log;
 
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use naia_socket_shared::SocketConfig;
+use naia_socket_shared::{parse_server_url, SocketConfig};
 
-use crate::{
-    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
-    url_parse::get_url,
-};
+use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
 
 use super::{
     packet_receiver::PacketReceiverImpl, packet_sender::PacketSender,
@@ -43,7 +40,7 @@ impl Socket {
             panic!("Socket already listening!");
         }
 
-        let server_url = get_url(server_session_url);
+        let server_url = parse_server_url(server_session_url);
         let message_queue = Rc::new(RefCell::new(VecDeque::new()));
         let data_channel = webrtc_initialize(
             server_url,

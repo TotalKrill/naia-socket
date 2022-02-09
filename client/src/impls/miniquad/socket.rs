@@ -1,11 +1,8 @@
 use std::collections::VecDeque;
 
-use naia_socket_shared::SocketConfig;
+use naia_socket_shared::{parse_server_url, SocketConfig};
 
-use crate::{
-    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
-    url_parse::get_url,
-};
+use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
 
 use super::{
     packet_receiver::PacketReceiverImpl,
@@ -36,7 +33,7 @@ impl Socket {
 
     /// Connects to the given server address
     pub fn connect(&mut self, server_session_url: &str) {
-        let server_url = get_url(server_session_url);
+        let server_url = parse_server_url(server_session_url);
 
         unsafe {
             MESSAGE_QUEUE = Some(VecDeque::new());

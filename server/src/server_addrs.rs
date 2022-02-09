@@ -1,5 +1,9 @@
 use std::{default::Default, net::SocketAddr};
 
+use url::Url;
+
+use naia_socket_shared::parse_server_url;
+
 /// List of addresses needed to start listening on a ServerSocket
 #[derive(Clone)]
 pub struct ServerAddrs {
@@ -8,7 +12,7 @@ pub struct ServerAddrs {
     /// IP Address to listen on for UDP WebRTC data channels
     pub webrtc_listen_addr: SocketAddr,
     /// The public WebRTC IP address to advertise
-    pub public_webrtc_addr: SocketAddr,
+    pub public_webrtc_url: Url,
 }
 
 impl ServerAddrs {
@@ -17,12 +21,12 @@ impl ServerAddrs {
     pub fn new(
         session_listen_addr: SocketAddr,
         webrtc_listen_addr: SocketAddr,
-        public_webrtc_addr: SocketAddr,
+        public_webrtc_url: &str,
     ) -> Self {
         ServerAddrs {
             session_listen_addr,
             webrtc_listen_addr,
-            public_webrtc_addr,
+            public_webrtc_url: parse_server_url(public_webrtc_url),
         }
     }
 }
@@ -36,9 +40,7 @@ impl Default for ServerAddrs {
             "127.0.0.1:14192"
                 .parse()
                 .expect("could not parse WebRTC data address/port"),
-            "127.0.0.1:14192"
-                .parse()
-                .expect("could not parse advertised public WebRTC data address/port"),
+            "http://127.0.0.1:14192",
         )
     }
 }

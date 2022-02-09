@@ -48,7 +48,7 @@ pub fn webrtc_initialize(
     rtc_endpoint_path: String,
     msg_queue: Rc<RefCell<VecDeque<Packet>>>,
 ) -> RtcDataChannel {
-    let server_url_str = format!("{}/{}", server_url, rtc_endpoint_path);
+    let server_url_str = format!("{}{}", server_url, rtc_endpoint_path);
 
     let mut peer_config: RtcConfiguration = RtcConfiguration::new();
     let ice_server_config = IceServerConfig {

@@ -1,18 +1,13 @@
 extern crate log;
 
 use std::{
-    net::{SocketAddr, UdpSocket},
+    net::UdpSocket,
     sync::{Arc, Mutex},
 };
 
-use url::Url;
+use naia_socket_shared::{find_my_ip_address, parse_server_url, url_to_socket_addr, SocketConfig};
 
-use naia_socket_shared::{find_my_ip_address, SocketConfig};
-
-use crate::{
-    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
-    url_parse::get_url,
-};
+use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
 
 use super::{packet_receiver::PacketReceiverImpl, packet_sender::PacketSender};
 
@@ -43,8 +38,8 @@ impl Socket {
             panic!("Socket already listening!");
         }
 
-        let server_url = get_url(server_session_url);
-        let server_socket_addr = get_socket_addr(&server_url);
+        let server_url = parse_server_url(server_session_url);
+        let server_socket_addr = url_to_socket_addr(&server_url);
 
         let client_ip_address =
             find_my_ip_address().expect("cannot find host's current IP address");
@@ -98,22 +93,4 @@ impl Socket {
             .packet_receiver
             .clone();
     }
-}
-
-fn get_socket_addr(url: &Url) -> SocketAddr {
-    const SOCKET_PARSE_FAIL_STR: &str = "could not get SocketAddr from input URL";
-
-    let addr_list = url
-        .socket_addrs(|| match url.scheme() {
-            "http" => Some(80),
-            "https" => Some(443),
-            _ => None,
-        })
-        .expect(SOCKET_PARSE_FAIL_STR);
-
-    if addr_list.is_empty() {
-        panic!("{}", SOCKET_PARSE_FAIL_STR);
-    }
-
-    return addr_list.first().expect(SOCKET_PARSE_FAIL_STR).clone();
 }
