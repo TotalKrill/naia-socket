@@ -117,7 +117,7 @@ pub fn webrtc_initialize(
                     let session_response_answer: SessionAnswer = session_response.answer.clone();
 
                     let peer_clone_4 = peer_clone_3.clone();
-                    let remote_desc_success_func: Box<dyn FnMut(JsValue)> = Box::new(
+                    let remote_desc_func: Box<dyn FnMut(JsValue)> = Box::new(
                         move |e: JsValue| {
                             let mut candidate_init_dict: RtcIceCandidateInit =
                                 RtcIceCandidateInit::new(
@@ -150,28 +150,18 @@ pub fn webrtc_initialize(
                             peer_add_failure_callback.forget();
                         },
                     );
-                    let remote_desc_success_callback = Closure::wrap(remote_desc_success_func);
-
-                    let remote_desc_failure_func: Box<dyn FnMut(JsValue)> =
-                        Box::new(move |_: JsValue| {
-                            info!(
-                                "Client error during 'setRemoteDescription': TODO, put value here"
-                            );
-                        });
-                    let remote_desc_failure_callback = Closure::wrap(remote_desc_failure_func);
+                    let remote_desc_callback = Closure::wrap(remote_desc_func);
 
                     let mut rtc_session_desc_init_dict: RtcSessionDescriptionInit =
                         RtcSessionDescriptionInit::new(RtcSdpType::Answer);
 
                     rtc_session_desc_init_dict.sdp(session_response_answer.sdp.as_str());
 
-                    peer_clone_3.set_remote_description_with_success_callback_and_failure_callback(
-                        &rtc_session_desc_init_dict,
-                        remote_desc_success_callback.as_ref().unchecked_ref(),
-                        remote_desc_failure_callback.as_ref().unchecked_ref(),
-                    );
-                    remote_desc_success_callback.forget();
-                    remote_desc_failure_callback.forget();
+                    peer_clone_3
+                        .set_remote_description(&rtc_session_desc_init_dict)
+                        .then(&remote_desc_callback);
+
+                    remote_desc_callback.forget();
                 }
             });
             let request_callback = Closure::wrap(request_func);
