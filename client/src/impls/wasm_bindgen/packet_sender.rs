@@ -28,7 +28,9 @@ impl PacketSender {
     pub fn send(&mut self, packet: Packet) {
         self.resend_dropped_messages();
 
-        if let Err(_) = self.data_channel.send_with_u8_array(&packet.payload()) {
+        if let Err(err) = self.data_channel.send_with_u8_array(&packet.payload()) {
+            log::info!("error when sending packet: {:?}", err);
+
             self.dropped_outgoing_messages
                 .borrow_mut()
                 .push_back(packet);
