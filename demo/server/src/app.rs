@@ -1,6 +1,6 @@
 use naia_server_socket::{Packet, PacketReceiver, PacketSender, ServerAddrs, Socket};
 
-use naia_socket_demo_shared::{get_server_address, get_shared_config, PING_MSG, PONG_MSG};
+use naia_socket_demo_shared::{get_shared_config, PING_MSG, PONG_MSG};
 
 pub struct App {
     packet_sender: PacketSender,
@@ -12,7 +12,9 @@ impl App {
         info!("Naia Server Socket Demo started");
 
         let server_address = ServerAddrs::new(
-            get_server_address(),
+            "127.0.0.1:14191"
+                .parse()
+                .expect("could not parse Session address/port"),
             // IP Address to listen on for UDP WebRTC data channels
             "127.0.0.1:14192"
                 .parse()

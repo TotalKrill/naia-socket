@@ -25,6 +25,7 @@ mod error;
 mod impls;
 mod packet;
 mod packet_receiver;
+mod url_parse;
 
 pub use naia_socket_shared::Timer;
 

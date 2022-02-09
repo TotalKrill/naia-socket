@@ -1,8 +1,9 @@
 extern crate log;
 
-use std::{cell::RefCell, collections::VecDeque, net::SocketAddr, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use log::info;
+use url::Url;
 
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
 use web_sys::{
@@ -43,11 +44,11 @@ pub struct IceServerConfig {
 
 #[allow(unused_must_use)]
 pub fn webrtc_initialize(
-    socket_address: SocketAddr,
+    server_url: Url,
     rtc_endpoint_path: String,
     msg_queue: Rc<RefCell<VecDeque<Packet>>>,
 ) -> RtcDataChannel {
-    let server_url_str = format!("http://{}/{}", socket_address, rtc_endpoint_path);
+    let server_url_str = format!("{}/{}", server_url, rtc_endpoint_path);
 
     let mut peer_config: RtcConfiguration = RtcConfiguration::new();
     let ice_server_config = IceServerConfig {

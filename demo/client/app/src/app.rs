@@ -10,7 +10,7 @@ cfg_if! {
 
 use naia_client_socket::{Packet, PacketReceiver, PacketSender, Socket, Timer};
 
-use naia_socket_demo_shared::{get_server_address, get_shared_config, PING_MSG, PONG_MSG};
+use naia_socket_demo_shared::{get_shared_config, PING_MSG, PONG_MSG};
 
 pub struct App {
     packet_sender: PacketSender,
@@ -23,11 +23,10 @@ impl App {
     pub fn new() -> App {
         info!("Naia Client Socket Demo started");
 
-        let server_address = get_server_address();
         let shared_config = get_shared_config();
 
         let mut socket = Socket::new(shared_config);
-        socket.connect(server_address);
+        socket.connect("http://www.localdev.com:14191");
 
         App {
             packet_sender: socket.get_packet_sender(),

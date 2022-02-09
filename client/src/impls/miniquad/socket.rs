@@ -1,8 +1,11 @@
-use std::{collections::VecDeque, net::SocketAddr};
+use std::collections::VecDeque;
 
 use naia_socket_shared::SocketConfig;
 
-use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
+use crate::{
+    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
+    url_parse::get_url,
+};
 
 use super::{
     packet_receiver::PacketReceiverImpl,
@@ -12,14 +15,12 @@ use super::{
 
 /// A client-side socket which communicates with an underlying unordered &
 /// unreliable protocol
-
 pub struct Socket {
     config: SocketConfig,
     io: Option<Io>,
 }
 
 /// Contains internal socket packet sender/receiver
-
 struct Io {
     /// Used to send packets through the socket
     pub packet_sender: PacketSender,
@@ -34,12 +35,14 @@ impl Socket {
     }
 
     /// Connects to the given server address
-    pub fn connect(&mut self, server_address: SocketAddr) {
+    pub fn connect(&mut self, server_session_url: &str) {
+        let server_url = get_url(server_session_url);
+
         unsafe {
             MESSAGE_QUEUE = Some(VecDeque::new());
             ERROR_QUEUE = Some(VecDeque::new());
             naia_connect(
-                JsObject::string(server_address.to_string().as_str()),
+                JsObject::string(server_url.to_string().as_str()),
                 JsObject::string(self.config.rtc_endpoint_path.as_str()),
             );
         }

@@ -1,10 +1,13 @@
 extern crate log;
 
-use std::{cell::RefCell, collections::VecDeque, net::SocketAddr, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use naia_socket_shared::SocketConfig;
 
-use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
+use crate::{
+    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
+    url_parse::get_url,
+};
 
 use super::{
     packet_receiver::PacketReceiverImpl, packet_sender::PacketSender,
@@ -35,14 +38,15 @@ impl Socket {
     }
 
     /// Connects to the given server address
-    pub fn connect(&mut self, server_address: SocketAddr) {
+    pub fn connect(&mut self, server_session_url: &str) {
         if self.io.is_some() {
             panic!("Socket already listening!");
         }
 
+        let server_url = get_url(server_session_url);
         let message_queue = Rc::new(RefCell::new(VecDeque::new()));
         let data_channel = webrtc_initialize(
-            server_address,
+            server_url,
             self.config.rtc_endpoint_path.clone(),
             message_queue.clone(),
         );
