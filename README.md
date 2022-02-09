@@ -55,3 +55,6 @@ To simply build these demos instead of running them, substitute the above comman
     `cargo build` for `cargo run`, and
 
     `npm run build` for `npm run start`
+
+### Notes:
+Hosting a WebRTC server on `127.0.0.1` doesn't seem to work out of the box when using a Firefox browser, try using Chrome for development purposes

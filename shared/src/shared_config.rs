@@ -2,7 +2,7 @@ use std::default::Default;
 
 use super::link_conditioner_config::LinkConditionerConfig;
 
-const DEFAULT_RTC_PATH: &str = "new_rtc_session";
+const DEFAULT_RTC_PATH: &str = "rtc_session";
 
 /// Contains Config properties which will be shared by Server and Client sockets
 #[derive(Clone)]
