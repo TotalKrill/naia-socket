@@ -118,9 +118,7 @@ pub fn webrtc_initialize(
             let request_func: Box<dyn FnMut(ProgressEvent)> = Box::new(move |_: ProgressEvent| {
                 if request_2.status().unwrap() == 200 {
                     let response_string = request_2.response_text().unwrap().unwrap();
-                    let response_js_value = js_sys::JSON::parse(response_string.as_str()).unwrap();
-                    let session_response: JsSessionResponse =
-                        response_js_value.into_serde().unwrap();
+                    let session_response: JsSessionResponse = serde_json::from_str(response_string.as_str()).unwrap();
                     let session_response_answer: SessionAnswer = session_response.answer.clone();
 
                     let peer_clone_4 = peer_clone_3.clone();
