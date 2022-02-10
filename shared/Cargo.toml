@@ -2,11 +2,14 @@
 name = "naia-socket-shared"
 version = "0.7.3"
 authors = ["connorcarpenter <connorcarpenter@gmail.com>"]
+workspace = ".."
 description = "Common data types shared between naia-server-socket & naia-client-socket crates"
 documentation = "https://docs.rs/naia-socket-shared"
 homepage = "https://github.com/naia-rs/naia-socket"
 repository = "https://github.com/naia-rs/naia-socket"
 readme = "../README.md"
+keywords = ["webrtc", "udp", "server", "gamedev", "networking"]
+categories = ["network-programming", "game-development", "wasm", "web-programming"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
 

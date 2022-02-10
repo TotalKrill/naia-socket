@@ -1,10 +1,10 @@
 [package]
 name = "naia-socket-client-demo-mq"
-authors = ["connorcarpenter <connorcarpenter@gmail.com>"]
-workspace = "../../../"
 version = "0.1.0"
-edition = "2021"
+authors = ["connorcarpenter <connorcarpenter@gmail.com>"]
+workspace = "../../.."
 license = "MIT OR Apache-2.0"
+edition = "2021"
 publish = false
 
 [features]

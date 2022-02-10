@@ -2,14 +2,15 @@
 name = "naia-client-socket"
 version = "0.7.3"
 authors = ["connorcarpenter <connorcarpenter@gmail.com>"]
+workspace = ".."
 description = "Abstraction to expose common API over a UDP socket on Linux, and a unreliable WebRTC datachannel on the browser"
 documentation = "https://docs.rs/naia-client-socket"
 homepage = "https://github.com/naia-rs/naia-socket"
 repository = "https://github.com/naia-rs/naia-socket"
 readme = "../README.md"
 keywords = ["wasm", "webrtc", "udp", "networking", "gamedev"]
-license = "MIT OR Apache-2.0"
 categories = ["network-programming", "game-development", "wasm", "web-programming"]
+license = "MIT OR Apache-2.0"
 edition = "2021"
 
 [badges]
