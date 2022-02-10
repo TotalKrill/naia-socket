@@ -23,6 +23,16 @@ args = ["build", "--target", "wasm32-unknown-unknown", "@@split(CARGO_RELEASE_AR
 command = "cargo"
 dependencies = ["install-target-wasm32-unknown-unknown"]
 
+[tasks.delete-old-wasm]
+args = ["${CARGO_TARGET_DIR}/wasm_bg.wasm"]
+command = "rm"
+dependencies = ["build-web"]
+
+[tasks.move-wasm]
+args = ["${CARGO_WASM_PATH}", "${CARGO_TARGET_DIR}/wasm_bg.wasm"]
+command = "mv"
+dependencies = ["delete-old-wasm"]
+
 [tasks.build-native]
 args = ["build", "@@split(CARGO_RELEASE_ARGS, )"]
 command = "cargo"
@@ -34,7 +44,7 @@ dependencies = ["build-native"]
 [tasks.serve]
 command = "basic-http-server"
 args = ["-x"]
-dependencies = ["build-web", "basic-http-server"]
+dependencies = ["move-wasm", "basic-http-server"]
 
 [tasks.test]
 disabled = true
