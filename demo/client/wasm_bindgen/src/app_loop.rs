@@ -1,18 +1,19 @@
-// Because we hook into web_sys::RtcDataChannel in order to send/receive events
-// from the server, we can't just create a simple loop and receive events like
-// in loop_native.rs - doing so would block indefinitely and never allow the
-// browser time to receive messages! (or render, or anything), so we use a
-// set_timeout to receive messages from the socket at a set interval
+use naia_socket_client_demo_app::App;
 
 cfg_if! {
     if #[cfg(target_arch = "wasm32")] {
+
+        // Because we hook into web_sys::RtcDataChannel in order to send/receive events
+        // from the server, we can't just create a simple loop and receive events like
+        // in loop_native.rs - doing so would block indefinitely and never allow the
+        // browser time to receive messages! (or render, or anything), so we use a
+        // set_timeout to receive messages from the socket at a set interval
+
         use std::cell::RefCell;
         use std::rc::Rc;
 
         use wasm_bindgen::prelude::*;
         use wasm_bindgen::JsCast;
-
-        use naia_socket_client_demo_app::App;
 
         pub fn start_loop(app: App) {
             fn set_timeout(f: &Closure<dyn FnMut()>, duration: i32) {
@@ -36,5 +37,12 @@ cfg_if! {
 
             set_timeout(g.borrow().as_ref().unwrap(), 1);
         }
-    } else {}
+    } else {
+        pub fn start_loop(app: App) {
+            let mut app_mut = app;
+            loop {
+                app_mut.update();
+            }
+        }
+    }
 }
