@@ -5,6 +5,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use log::info;
+
 use naia_socket_shared::{find_my_ip_address, parse_server_url, url_to_socket_addr, SocketConfig};
 
 use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
@@ -56,7 +58,6 @@ impl Socket {
 
         let conditioner_config = self.config.link_condition_config.clone();
 
-        let sender = packet_sender.clone();
         let receiver: Box<dyn PacketReceiverTrait> = {
             let inner_receiver =
                 Box::new(PacketReceiverImpl::new(server_socket_addr, socket.clone()));
@@ -67,8 +68,13 @@ impl Socket {
             }
         };
 
+        info!(
+            "UDP client listening on socket: {}",
+            packet_sender.local_addr()
+        );
+
         self.io = Some(Io {
-            packet_sender: sender,
+            packet_sender: packet_sender.clone(),
             packet_receiver: PacketReceiver::new(receiver),
         });
     }

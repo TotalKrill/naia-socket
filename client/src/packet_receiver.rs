@@ -1,3 +1,5 @@
+use std::net::SocketAddr;
+
 use naia_socket_shared::{link_condition_logic, LinkConditionerConfig, TimeQueue};
 
 use super::{error::NaiaClientSocketError, packet::Packet};
@@ -18,12 +20,26 @@ impl PacketReceiver {
     pub fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError> {
         return self.inner.receive();
     }
+
+    /// Get SocketAddr PacketReceiver is receiving from
+    pub fn remote_addr(&self) -> SocketAddr {
+        self.inner.remote_addr()
+    }
+
+    /// Get SocketAddr PacketReceiver is receiving to
+    pub fn local_addr(&self) -> SocketAddr {
+        self.inner.local_addr()
+    }
 }
 
 /// Used to receive packets from the Client Socket
 pub trait PacketReceiverTrait: PacketReceiverClone + Send + Sync {
     /// Receives a packet from the Client Socket
     fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError>;
+    /// Get SocketAddr PacketReceiver is receiving from
+    fn remote_addr(&self) -> SocketAddr;
+    /// Get SocketAddr PacketReceiver is receiving to
+    fn local_addr(&self) -> SocketAddr;
 }
 
 /// Used to receive packets from the Client Socket
@@ -70,14 +86,14 @@ impl PacketReceiverTrait for ConditionedPacketReceiver {
             match self.inner_receiver.receive() {
                 Ok(option) => match option {
                     None => {
-                        break; //TODO: Handle error here
+                        break;
                     }
                     Some(packet) => {
                         self.process_packet(packet);
                     }
                 },
-                Err(_) => {
-                    break; //TODO: Handle error here
+                Err(err) => {
+                    return Err(err);
                 }
             }
         }
@@ -87,6 +103,16 @@ impl PacketReceiverTrait for ConditionedPacketReceiver {
         } else {
             return Ok(None);
         }
+    }
+
+    /// Get SocketAddr PacketReceiver is receiving from
+    fn remote_addr(&self) -> SocketAddr {
+        self.inner_receiver.remote_addr()
+    }
+
+    /// Get SocketAddr PacketReceiver is receiving to
+    fn local_addr(&self) -> SocketAddr {
+        self.inner_receiver.local_addr()
     }
 }
 
