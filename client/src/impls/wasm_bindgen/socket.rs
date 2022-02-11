@@ -1,8 +1,15 @@
 extern crate log;
 
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::VecDeque,
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    rc::Rc,
+};
 
-use naia_socket_shared::{parse_server_url, SocketConfig};
+use log::info;
+
+use naia_socket_shared::{parse_server_url, url_to_socket_addr, SocketConfig};
 
 use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
 
@@ -41,6 +48,7 @@ impl Socket {
         }
 
         let server_url = parse_server_url(server_session_url);
+        let server_socket_addr = url_to_socket_addr(&server_url);
         let message_queue = Rc::new(RefCell::new(VecDeque::new()));
         let data_channel = webrtc_initialize(
             server_url,
@@ -50,9 +58,17 @@ impl Socket {
 
         let dropped_outgoing_messages = Rc::new(RefCell::new(VecDeque::new()));
 
-        let packet_sender =
-            PacketSender::new(data_channel.clone(), dropped_outgoing_messages.clone());
-        let packet_receiver = PacketReceiverImpl::new(message_queue.clone());
+        let packet_sender = PacketSender::new(
+            data_channel.clone(),
+            dropped_outgoing_messages.clone(),
+            server_socket_addr,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(9, 9, 9, 9)), 9999),
+        );
+        let packet_receiver = PacketReceiverImpl::new(
+            message_queue.clone(),
+            server_socket_addr,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(9, 9, 9, 9)), 9999),
+        );
 
         let sender = packet_sender.clone();
         let receiver: Box<dyn PacketReceiverTrait> = {
@@ -63,6 +79,11 @@ impl Socket {
                 inner_receiver
             }
         };
+
+        info!(
+            "Wasm client listening on socket: {}",
+            packet_sender.local_addr()
+        );
 
         self.io = Some(Io {
             packet_sender: sender,
