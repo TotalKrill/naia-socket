@@ -1,6 +1,6 @@
 use naia_server_socket::{Packet, PacketReceiver, PacketSender, ServerAddrs, Socket};
 
-use naia_socket_demo_shared::{get_shared_config, PING_MSG, PONG_MSG};
+use naia_socket_demo_shared::{shared_config, PING_MSG, PONG_MSG};
 
 pub struct App {
     packet_sender: PacketSender,
@@ -22,14 +22,14 @@ impl App {
             // The public WebRTC IP address to advertise
             "http://127.0.0.1:14192",
         );
-        let shared_config = get_shared_config();
+        let shared_config = shared_config();
 
         let mut socket = Socket::new(shared_config);
         socket.listen(server_address);
 
         App {
-            packet_sender: socket.get_packet_sender(),
-            packet_receiver: socket.get_packet_receiver(),
+            packet_sender: socket.packet_sender(),
+            packet_receiver: socket.packet_receiver(),
         }
     }
 

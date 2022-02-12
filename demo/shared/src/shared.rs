@@ -3,7 +3,7 @@ use naia_socket_shared::{LinkConditionerConfig, SocketConfig};
 pub const PING_MSG: &str = "PING";
 pub const PONG_MSG: &str = "PONG";
 
-pub fn get_shared_config() -> SocketConfig {
+pub fn shared_config() -> SocketConfig {
     //let link_condition = None;
     let link_condition = Some(LinkConditionerConfig::average_condition());
     //    let link_condition = Some(LinkConditionerConfig {

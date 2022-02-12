@@ -28,7 +28,7 @@ impl Timestamp {
 
     /// Read a Timestamp from an incoming packet's byte stream
     pub fn read(reader: &mut PacketReader) -> Self {
-        let cursor = reader.get_cursor();
+        let cursor = reader.cursor();
         let time = cursor.read_u64::<BigEndian>().unwrap();
 
         Timestamp { time }

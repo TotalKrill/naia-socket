@@ -107,7 +107,7 @@ impl AsyncSocketTrait for Socket {
         }
     }
 
-    fn get_sender(&self) -> mpsc::Sender<Packet> {
+    fn sender(&self) -> mpsc::Sender<Packet> {
         return self.to_client_sender.clone();
     }
 }

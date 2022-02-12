@@ -88,7 +88,7 @@ impl ConditionedPacketReceiverImpl {
         self.time_queue.has_item()
     }
 
-    fn get_packet(&mut self) -> Packet {
+    fn receive(&mut self) -> Packet {
         self.time_queue.pop_item().unwrap()
     }
 }
@@ -112,7 +112,7 @@ impl PacketReceiverTrait for ConditionedPacketReceiverImpl {
         }
 
         if self.has_packet() {
-            return Ok(Some(self.get_packet()));
+            return Ok(Some(self.receive()));
         } else {
             return Ok(None);
         }

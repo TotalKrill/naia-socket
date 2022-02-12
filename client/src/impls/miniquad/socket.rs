@@ -64,7 +64,7 @@ impl Socket {
     }
 
     /// Gets a PacketSender which can be used to send packets through the Socket
-    pub fn get_packet_sender(&self) -> PacketSender {
+    pub fn packet_sender(&self) -> PacketSender {
         return self
             .io
             .as_ref()
@@ -75,7 +75,7 @@ impl Socket {
 
     /// Gets a PacketReceiver which can be used to receive packets from the
     /// Socket
-    pub fn get_packet_receiver(&self) -> PacketReceiver {
+    pub fn packet_receiver(&self) -> PacketReceiver {
         return self
             .io
             .as_ref()

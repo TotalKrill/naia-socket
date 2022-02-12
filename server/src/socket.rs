@@ -52,7 +52,7 @@ impl Socket {
             // Create async socket
             let mut async_socket = AsyncSocket::listen(server_addrs_clone, config_clone).await;
 
-            sender_sender.send(async_socket.get_sender()).unwrap(); //TODO: handle result..
+            sender_sender.send(async_socket.sender()).unwrap(); //TODO: handle result..
 
             loop {
                 let out_message = async_socket.receive().await;
@@ -96,7 +96,7 @@ impl Socket {
     }
 
     /// Gets a PacketSender which can be used to send packets through the Socket
-    pub fn get_packet_sender(&self) -> PacketSender {
+    pub fn packet_sender(&self) -> PacketSender {
         return self
             .io
             .as_ref()
@@ -107,7 +107,7 @@ impl Socket {
 
     /// Gets a PacketReceiver which can be used to receive packets from the
     /// Socket
-    pub fn get_packet_receiver(&self) -> PacketReceiver {
+    pub fn packet_receiver(&self) -> PacketReceiver {
         return self
             .io
             .as_ref()
