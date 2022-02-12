@@ -151,7 +151,8 @@ pub fn webrtc_initialize(
 
                                         let peer_add_success_func: Box<dyn FnMut(JsValue)> =
                                             Box::new(move |_: JsValue| {
-                                                //Client add ice candidate success
+                                                //Client add ice candidate
+                                                //success
                                             });
                                         let peer_add_success_callback =
                                             Closure::wrap(peer_add_success_func);
