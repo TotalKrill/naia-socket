@@ -7,21 +7,15 @@ use crate::{error::NaiaClientSocketError, packet::Packet, packet_receiver::Packe
 pub struct PacketReceiverImpl {
     message_queue: Rc<RefCell<VecDeque<Packet>>>,
     remote_addr: SocketAddr,
-    local_addr: SocketAddr,
 }
 
 impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the RtcDataChannel and a
     /// reference to a list of dropped messages
-    pub fn new(
-        message_queue: Rc<RefCell<VecDeque<Packet>>>,
-        remote_addr: SocketAddr,
-        local_addr: SocketAddr,
-    ) -> Self {
+    pub fn new(message_queue: Rc<RefCell<VecDeque<Packet>>>, remote_addr: SocketAddr) -> Self {
         PacketReceiverImpl {
             message_queue,
             remote_addr,
-            local_addr,
         }
     }
 }
@@ -41,11 +35,6 @@ impl PacketReceiverTrait for PacketReceiverImpl {
     /// Get SocketAddr PacketReceiver is receiving from
     fn remote_addr(&self) -> SocketAddr {
         self.remote_addr
-    }
-
-    /// Get SocketAddr PacketReceiver is receiving to
-    fn local_addr(&self) -> SocketAddr {
-        self.local_addr
     }
 }
 

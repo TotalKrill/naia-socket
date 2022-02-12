@@ -25,11 +25,6 @@ impl PacketReceiver {
     pub fn remote_addr(&self) -> SocketAddr {
         self.inner.remote_addr()
     }
-
-    /// Get SocketAddr PacketReceiver is receiving to
-    pub fn local_addr(&self) -> SocketAddr {
-        self.inner.local_addr()
-    }
 }
 
 /// Used to receive packets from the Client Socket
@@ -38,8 +33,6 @@ pub trait PacketReceiverTrait: PacketReceiverClone + Send + Sync {
     fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError>;
     /// Get SocketAddr PacketReceiver is receiving from
     fn remote_addr(&self) -> SocketAddr;
-    /// Get SocketAddr PacketReceiver is receiving to
-    fn local_addr(&self) -> SocketAddr;
 }
 
 /// Used to receive packets from the Client Socket
@@ -108,11 +101,6 @@ impl PacketReceiverTrait for ConditionedPacketReceiver {
     /// Get SocketAddr PacketReceiver is receiving from
     fn remote_addr(&self) -> SocketAddr {
         self.inner_receiver.remote_addr()
-    }
-
-    /// Get SocketAddr PacketReceiver is receiving to
-    fn local_addr(&self) -> SocketAddr {
-        self.inner_receiver.local_addr()
     }
 }
 

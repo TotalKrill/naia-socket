@@ -53,6 +53,7 @@ impl Socket {
             .unwrap()
             .set_nonblocking(true)
             .expect("can't set socket to non-blocking!");
+        let local_addr = socket.as_ref().lock().unwrap().local_addr().unwrap();
 
         let packet_sender = PacketSender::new(server_socket_addr, socket.clone());
 
@@ -68,10 +69,7 @@ impl Socket {
             }
         };
 
-        info!(
-            "UDP client listening on socket: {}",
-            packet_sender.local_addr()
-        );
+        info!("UDP client listening on socket: {}", local_addr);
 
         self.io = Some(Io {
             packet_sender: packet_sender.clone(),

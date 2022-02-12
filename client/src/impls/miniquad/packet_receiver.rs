@@ -1,16 +1,20 @@
+use std::net::SocketAddr;
+
 use crate::{error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait};
 
 use super::shared::{naia_resend_dropped_messages, ERROR_QUEUE, MESSAGE_QUEUE};
 
 /// Handles receiving messages from the Server through a given Client Socket
 #[derive(Clone)]
-pub struct PacketReceiverImpl {}
+pub struct PacketReceiverImpl {
+    remote_addr: SocketAddr,
+}
 
 impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the RtcDataChannel and a
     /// reference to a list of dropped messages
-    pub fn new() -> Self {
-        PacketReceiverImpl {}
+    pub fn new(remote_addr: SocketAddr) -> Self {
+        PacketReceiverImpl { remote_addr }
     }
 }
 
@@ -33,5 +37,10 @@ impl PacketReceiverTrait for PacketReceiverImpl {
         };
 
         Ok(None)
+    }
+
+    /// Get SocketAddr PacketReceiver is receiving from
+    fn remote_addr(&self) -> SocketAddr {
+        self.remote_addr
     }
 }

@@ -10,7 +10,6 @@ pub struct PacketSender {
     data_channel: RtcDataChannel,
     dropped_outgoing_messages: Rc<RefCell<VecDeque<Packet>>>,
     remote_addr: SocketAddr,
-    local_addr: SocketAddr,
 }
 
 impl PacketSender {
@@ -20,13 +19,11 @@ impl PacketSender {
         data_channel: RtcDataChannel,
         dropped_outgoing_messages: Rc<RefCell<VecDeque<Packet>>>,
         remote_addr: SocketAddr,
-        local_addr: SocketAddr,
     ) -> Self {
         PacketSender {
             data_channel,
             dropped_outgoing_messages,
             remote_addr,
-            local_addr,
         }
     }
 
@@ -60,11 +57,6 @@ impl PacketSender {
     /// Get SocketAddr PacketSender is sending to
     pub fn remote_addr(&self) -> SocketAddr {
         self.remote_addr
-    }
-
-    /// Get SocketAddr PacketSender is sending from
-    pub fn local_addr(&self) -> SocketAddr {
-        self.local_addr
     }
 }
 

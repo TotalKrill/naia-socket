@@ -10,7 +10,6 @@ use crate::{error::NaiaClientSocketError, packet::Packet, packet_receiver::Packe
 #[derive(Clone)]
 pub struct PacketReceiverImpl {
     remote_addr: SocketAddr,
-    local_addr: SocketAddr,
     local_socket: Arc<Mutex<UdpSocket>>,
     receive_buffer: Vec<u8>,
 }
@@ -19,10 +18,8 @@ impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the Server's address & a
     /// reference back to the parent Socket
     pub fn new(remote_addr: SocketAddr, local_socket: Arc<Mutex<UdpSocket>>) -> Self {
-        let local_addr = local_socket.as_ref().lock().unwrap().local_addr().unwrap();
         PacketReceiverImpl {
             remote_addr,
-            local_addr,
             local_socket,
             receive_buffer: vec![0; 1472],
         }
@@ -64,10 +61,5 @@ impl PacketReceiverTrait for PacketReceiverImpl {
     /// Get SocketAddr PacketReceiver is receiving from
     fn remote_addr(&self) -> SocketAddr {
         self.remote_addr
-    }
-
-    /// Get SocketAddr PacketReceiver is receiving to
-    fn local_addr(&self) -> SocketAddr {
-        self.local_addr
     }
 }

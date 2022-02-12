@@ -1,13 +1,6 @@
 extern crate log;
 
-use std::{
-    cell::RefCell,
-    collections::VecDeque,
-    net::{IpAddr, Ipv4Addr, SocketAddr},
-    rc::Rc,
-};
-
-use log::info;
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use naia_socket_shared::{parse_server_url, url_to_socket_addr, SocketConfig};
 
@@ -62,13 +55,8 @@ impl Socket {
             data_channel.clone(),
             dropped_outgoing_messages.clone(),
             server_socket_addr,
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(9, 9, 9, 9)), 9999),
         );
-        let packet_receiver = PacketReceiverImpl::new(
-            message_queue.clone(),
-            server_socket_addr,
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(9, 9, 9, 9)), 9999),
-        );
+        let packet_receiver = PacketReceiverImpl::new(message_queue.clone(), server_socket_addr);
 
         let sender = packet_sender.clone();
         let receiver: Box<dyn PacketReceiverTrait> = {
@@ -79,11 +67,6 @@ impl Socket {
                 inner_receiver
             }
         };
-
-        info!(
-            "Wasm client listening on socket: {}",
-            packet_sender.local_addr()
-        );
 
         self.io = Some(Io {
             packet_sender: sender,
