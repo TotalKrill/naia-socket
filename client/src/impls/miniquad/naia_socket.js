@@ -68,7 +68,9 @@ const naia_socket = {
                 if (request.status === 200) {
                     let response = JSON.parse(request.responseText);
                     peer.setRemoteDescription(new RTCSessionDescription(response.answer)).then(function() {
-                        let candidate = new RTCIceCandidate(response.candidate);
+                        let response_candidate = response.candidate;
+                        wasm_exports.receive_candidate(this.js_object(JSON.stringify(response_candidate.candidate)));
+                        let candidate = new RTCIceCandidate(response_candidate);
                         peer.addIceCandidate(candidate).then(function() {
                             console.log("add ice candidate success");
                         }).catch(function(err) {

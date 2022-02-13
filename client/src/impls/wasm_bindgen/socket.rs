@@ -2,12 +2,12 @@ extern crate log;
 
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use naia_socket_shared::{parse_server_url, url_to_socket_addr, SocketConfig};
+use naia_socket_shared::{parse_server_url, SocketConfig};
 
 use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
 
 use super::{
-    packet_receiver::PacketReceiverImpl, packet_sender::PacketSender,
+    addr_cell::AddrCell, packet_receiver::PacketReceiverImpl, packet_sender::PacketSender,
     webrtc_internal::webrtc_initialize,
 };
 
@@ -41,12 +41,14 @@ impl Socket {
         }
 
         let server_url = parse_server_url(server_session_url);
-        let server_socket_addr = url_to_socket_addr(&server_url);
+
+        let addr_cell = AddrCell::new();
         let message_queue = Rc::new(RefCell::new(VecDeque::new()));
         let data_channel = webrtc_initialize(
             server_url,
             self.config.rtc_endpoint_path.clone(),
             message_queue.clone(),
+            addr_cell.clone(),
         );
 
         let dropped_outgoing_messages = Rc::new(RefCell::new(VecDeque::new()));
@@ -54,9 +56,9 @@ impl Socket {
         let packet_sender = PacketSender::new(
             data_channel.clone(),
             dropped_outgoing_messages.clone(),
-            server_socket_addr,
+            addr_cell.clone(),
         );
-        let packet_receiver = PacketReceiverImpl::new(message_queue.clone(), server_socket_addr);
+        let packet_receiver = PacketReceiverImpl::new(message_queue.clone(), addr_cell.clone());
 
         let sender = packet_sender.clone();
         let receiver: Box<dyn PacketReceiverTrait> = {

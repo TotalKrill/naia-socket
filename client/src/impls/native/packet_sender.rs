@@ -3,21 +3,21 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::Packet;
+use crate::{server_addr::ServerAddr, Packet};
 
 /// Handles sending messages to the Server for a given Client Socket
 #[derive(Clone)]
 pub struct PacketSender {
-    remote_addr: SocketAddr,
+    server_addr: SocketAddr,
     local_socket: Arc<Mutex<UdpSocket>>,
 }
 
 impl PacketSender {
     /// Create a new PacketSender, if supplied with the Server's address & a
     /// reference back to the parent Socket
-    pub fn new(remote_addr: SocketAddr, local_socket: Arc<Mutex<UdpSocket>>) -> Self {
+    pub fn new(server_addr: SocketAddr, local_socket: Arc<Mutex<UdpSocket>>) -> Self {
         PacketSender {
-            remote_addr,
+            server_addr,
             local_socket,
         }
     }
@@ -30,14 +30,14 @@ impl PacketSender {
             .as_ref()
             .lock()
             .unwrap()
-            .send_to(&packet.payload(), self.remote_addr)
+            .send_to(&packet.payload(), self.server_addr)
         {
             //TODO: handle this error
         }
     }
 
-    /// Get SocketAddr PacketSender is sending to
-    pub fn remote_addr(&self) -> SocketAddr {
-        self.remote_addr
+    /// Get the Server's Socket address
+    pub fn server_addr(&self) -> ServerAddr {
+        ServerAddr::Found(self.server_addr)
     }
 }

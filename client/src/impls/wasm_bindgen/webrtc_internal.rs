@@ -13,6 +13,7 @@ use web_sys::{
     RtcSessionDescriptionInit, XmlHttpRequest,
 };
 
+use super::addr_cell::AddrCell;
 use crate::Packet;
 
 #[derive(Deserialize, Clone)]
@@ -43,6 +44,7 @@ pub fn webrtc_initialize(
     server_url: Url,
     rtc_endpoint_path: String,
     msg_queue: Rc<RefCell<VecDeque<Packet>>>,
+    addr_cell: AddrCell,
 ) -> RtcDataChannel {
     let server_url_str = format!("{}{}", server_url, rtc_endpoint_path);
 
@@ -75,22 +77,22 @@ pub fn webrtc_initialize(
                 peer.create_data_channel_with_data_channel_dict("data", &data_channel_config);
             channel.set_binary_type(RtcDataChannelType::Arraybuffer);
 
-            let cloned_channel = channel.clone();
-            let msg_queue_clone = msg_queue.clone();
+            let channel_2 = channel.clone();
+            let msg_queue_2 = msg_queue.clone();
             let channel_onopen_func: Box<dyn FnMut(JsValue)> = Box::new(move |_| {
-                let msg_queue_clone_2 = msg_queue_clone.clone();
+                let msg_queue_3 = msg_queue_2.clone();
                 let channel_onmsg_func: Box<dyn FnMut(MessageEvent)> =
                     Box::new(move |evt: MessageEvent| {
                         if let Ok(arraybuf) = evt.data().dyn_into::<js_sys::ArrayBuffer>() {
                             let uarray: js_sys::Uint8Array = js_sys::Uint8Array::new(&arraybuf);
                             let mut body = vec![0; uarray.length() as usize];
                             uarray.copy_to(&mut body[..]);
-                            msg_queue_clone_2.borrow_mut().push_back(Packet::new(body));
+                            msg_queue_3.borrow_mut().push_back(Packet::new(body));
                         }
                     });
                 let channel_onmsg_closure = Closure::wrap(channel_onmsg_func);
 
-                cloned_channel.set_onmessage(Some(channel_onmsg_closure.as_ref().unchecked_ref()));
+                channel_2.set_onmessage(Some(channel_onmsg_closure.as_ref().unchecked_ref()));
                 channel_onmsg_closure.forget();
             });
             let channel_onopen_closure = Closure::wrap(channel_onopen_func);
@@ -104,17 +106,19 @@ pub fn webrtc_initialize(
             channel.set_onerror(Some(onerror_callback.as_ref().unchecked_ref()));
             onerror_callback.forget();
 
-            let peer_clone = peer.clone();
+            let peer_2 = peer.clone();
+            let addr_cell_2 = addr_cell.clone();
             let server_url_msg = Rc::new(RefCell::new(server_url_str));
             let peer_offer_func: Box<dyn FnMut(JsValue)> = Box::new(move |e: JsValue| {
                 let session_description = e.into();
-                let peer_clone_2 = peer_clone.clone();
-                let server_url_msg_clone = server_url_msg.clone();
+                let peer_3 = peer_2.clone();
+                let addr_cell_3 = addr_cell_2.clone();
+                let server_url_msg_2 = server_url_msg.clone();
                 let peer_desc_func: Box<dyn FnMut(JsValue)> = Box::new(move |_: JsValue| {
                     let request = XmlHttpRequest::new().expect("can't create new XmlHttpRequest");
 
                     request
-                        .open("POST", &server_url_msg_clone.borrow())
+                        .open("POST", &server_url_msg_2.borrow())
                         .unwrap_or_else(|err| {
                             info!(
                                 "WebSys, can't POST to server url. Original Error: {:?}",
@@ -123,7 +127,8 @@ pub fn webrtc_initialize(
                         });
 
                     let request_2 = request.clone();
-                    let peer_clone_3 = peer_clone_2.clone();
+                    let peer_4 = peer_3.clone();
+                    let addr_cell_4 = addr_cell_3.clone();
                     let request_func: Box<dyn FnMut(ProgressEvent)> = Box::new(
                         move |_: ProgressEvent| {
                             if request_2.status().unwrap() == 200 {
@@ -133,13 +138,15 @@ pub fn webrtc_initialize(
                                 let session_response_answer: SessionAnswer =
                                     session_response.answer.clone();
 
-                                let peer_clone_4 = peer_clone_3.clone();
+                                let peer_5 = peer_4.clone();
+                                let addr_cell_5 = addr_cell_4.clone();
                                 let remote_desc_func: Box<dyn FnMut(JsValue)> = Box::new(
                                     move |e: JsValue| {
+                                        let candidate_str =
+                                            session_response.candidate.candidate.as_str();
+                                        addr_cell_5.receive_candidate(candidate_str);
                                         let mut candidate_init_dict: RtcIceCandidateInit =
-                                            RtcIceCandidateInit::new(
-                                                session_response.candidate.candidate.as_str(),
-                                            );
+                                            RtcIceCandidateInit::new(candidate_str);
                                         candidate_init_dict.sdp_m_line_index(Some(
                                             session_response.candidate.sdp_m_line_index,
                                         ));
@@ -166,7 +173,7 @@ pub fn webrtc_initialize(
                                         let peer_add_failure_callback =
                                             Closure::wrap(peer_add_failure_func);
 
-                                        peer_clone_4.add_ice_candidate_with_rtc_ice_candidate_and_success_callback_and_failure_callback(
+                                        peer_5.add_ice_candidate_with_rtc_ice_candidate_and_success_callback_and_failure_callback(
                                     &candidate,
                                     peer_add_success_callback.as_ref().unchecked_ref(),
                                     peer_add_failure_callback.as_ref().unchecked_ref());
@@ -182,7 +189,7 @@ pub fn webrtc_initialize(
                                 rtc_session_desc_init_dict
                                     .sdp(session_response_answer.sdp.as_str());
 
-                                peer_clone_3
+                                peer_4
                                     .set_remote_description(&rtc_session_desc_init_dict)
                                     .then(&remote_desc_callback);
 
@@ -195,16 +202,14 @@ pub fn webrtc_initialize(
                     request_callback.forget();
 
                     request
-                        .send_with_opt_str(Some(
-                            peer_clone_2.local_description().unwrap().sdp().as_str(),
-                        ))
+                        .send_with_opt_str(Some(peer_3.local_description().unwrap().sdp().as_str()))
                         .unwrap_or_else(|err| {
                             info!("WebSys, can't sent request str. Original Error: {:?}", err)
                         });
                 });
                 let peer_desc_callback = Closure::wrap(peer_desc_func);
 
-                peer_clone
+                peer_2
                     .set_local_description(&session_description)
                     .then(&peer_desc_callback);
                 peer_desc_callback.forget();

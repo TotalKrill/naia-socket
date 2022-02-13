@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use naia_socket_shared::{parse_server_url, url_to_socket_addr, SocketConfig};
+use naia_socket_shared::{parse_server_url, SocketConfig};
 
 use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
 
@@ -34,7 +34,6 @@ impl Socket {
     /// Connects to the given server address
     pub fn connect(&mut self, server_session_url: &str) {
         let server_url = parse_server_url(server_session_url);
-        let server_socket_addr = url_to_socket_addr(&server_url);
 
         unsafe {
             MESSAGE_QUEUE = Some(VecDeque::new());
@@ -47,9 +46,9 @@ impl Socket {
 
         let conditioner_config = self.config.link_condition_config.clone();
 
-        let sender = PacketSender::new(server_socket_addr);
+        let sender = PacketSender::new();
         let receiver: Box<dyn PacketReceiverTrait> = {
-            let inner_receiver = Box::new(PacketReceiverImpl::new(server_socket_addr));
+            let inner_receiver = Box::new(PacketReceiverImpl::new());
             if let Some(config) = &conditioner_config {
                 Box::new(ConditionedPacketReceiver::new(inner_receiver, config))
             } else {

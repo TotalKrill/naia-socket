@@ -8,7 +8,7 @@ cfg_if! {
     }
 }
 
-use naia_client_socket::{Packet, PacketReceiver, PacketSender, Socket, Timer};
+use naia_client_socket::{Packet, PacketReceiver, PacketSender, ServerAddr, Socket, Timer};
 
 use naia_socket_demo_shared::{shared_config, PING_MSG, PONG_MSG};
 
@@ -38,27 +38,35 @@ impl App {
 
     pub fn update(&mut self) {
         match self.packet_receiver.receive() {
-            Ok(event) => match event {
-                Some(packet) => {
-                    let message = String::from_utf8_lossy(packet.payload());
-                    info!("Client recv <- {}", message);
+            Ok(Some(packet)) => {
+                let message_from_server = String::from_utf8_lossy(packet.payload());
+                let server_addr = match self.packet_receiver.server_addr() {
+                    ServerAddr::Found(addr) => addr.to_string(),
+                    _ => "".to_string(),
+                };
+                info!("Client recv <- {}: {}", server_addr, message_from_server);
 
-                    if message.eq(PONG_MSG) {
-                        self.message_count += 1;
+                if message_from_server.eq(PONG_MSG) {
+                    self.message_count += 1;
+                }
+            }
+            Ok(None) => {
+                if self.timer.ringing() {
+                    self.timer.reset();
+                    if self.message_count < 10 {
+                        let message_to_server: String = PING_MSG.to_string();
+
+                        let server_addr = match self.packet_receiver.server_addr() {
+                            ServerAddr::Found(addr) => addr.to_string(),
+                            _ => "".to_string(),
+                        };
+                        info!("Client send -> {}: {}", server_addr, message_to_server);
+
+                        self.packet_sender
+                            .send(Packet::new(message_to_server.into_bytes()));
                     }
                 }
-                None => {
-                    if self.timer.ringing() {
-                        self.timer.reset();
-                        if self.message_count < 10 {
-                            let to_server_message: String = PING_MSG.to_string();
-                            info!("Client send -> {}", to_server_message,);
-                            self.packet_sender
-                                .send(Packet::new(to_server_message.into_bytes()));
-                        }
-                    }
-                }
-            },
+            }
             Err(err) => {
                 info!("Client Error: {}", err);
             }

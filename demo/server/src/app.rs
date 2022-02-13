@@ -37,14 +37,14 @@ impl App {
         match self.packet_receiver.receive() {
             Ok(Some(packet)) => {
                 let address = packet.address();
-                let message = String::from_utf8_lossy(packet.payload());
-                info!("Server recv <- {}: {}", address, message);
+                let message_from_client = String::from_utf8_lossy(packet.payload());
+                info!("Server recv <- {}: {}", address, message_from_client);
 
-                if message.eq(PING_MSG) {
-                    let to_client_message: String = PONG_MSG.to_string();
-                    info!("Server send -> {}: {}", address, to_client_message);
+                if message_from_client.eq(PING_MSG) {
+                    let message_to_client: String = PONG_MSG.to_string();
+                    info!("Server send -> {}: {}", address, message_to_client);
                     self.packet_sender
-                        .send(Packet::new(address, to_client_message.into_bytes()));
+                        .send(Packet::new(address, message_to_client.into_bytes()));
                 }
             }
             Ok(None) => {}

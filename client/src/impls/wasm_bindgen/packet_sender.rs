@@ -1,15 +1,16 @@
-use std::{cell::RefCell, collections::VecDeque, net::SocketAddr, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use web_sys::RtcDataChannel;
 
-use crate::Packet;
+use super::addr_cell::AddrCell;
+use crate::{server_addr::ServerAddr, Packet};
 
 /// Handles sending messages to the Server for a given Client Socket
 #[derive(Clone)]
 pub struct PacketSender {
     data_channel: RtcDataChannel,
     dropped_outgoing_messages: Rc<RefCell<VecDeque<Packet>>>,
-    remote_addr: SocketAddr,
+    server_addr: AddrCell,
 }
 
 impl PacketSender {
@@ -18,12 +19,12 @@ impl PacketSender {
     pub fn new(
         data_channel: RtcDataChannel,
         dropped_outgoing_messages: Rc<RefCell<VecDeque<Packet>>>,
-        remote_addr: SocketAddr,
+        server_addr: AddrCell,
     ) -> Self {
         PacketSender {
             data_channel,
             dropped_outgoing_messages,
-            remote_addr,
+            server_addr,
         }
     }
 
@@ -54,9 +55,9 @@ impl PacketSender {
         }
     }
 
-    /// Get SocketAddr PacketSender is sending to
-    pub fn remote_addr(&self) -> SocketAddr {
-        self.remote_addr
+    /// Get the Server's Socket address
+    pub fn server_addr(&self) -> ServerAddr {
+        self.server_addr.get()
     }
 }
 

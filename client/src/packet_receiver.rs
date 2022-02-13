@@ -1,8 +1,6 @@
-use std::net::SocketAddr;
-
 use naia_socket_shared::{link_condition_logic, LinkConditionerConfig, TimeQueue};
 
-use super::{error::NaiaClientSocketError, packet::Packet};
+use super::{error::NaiaClientSocketError, packet::Packet, server_addr::ServerAddr};
 
 /// Used to receive packets from the Client Socket
 #[derive(Clone)]
@@ -21,9 +19,9 @@ impl PacketReceiver {
         return self.inner.receive();
     }
 
-    /// Get SocketAddr PacketReceiver is receiving from
-    pub fn remote_addr(&self) -> SocketAddr {
-        self.inner.remote_addr()
+    /// Get the Server's Socket address
+    pub fn server_addr(&self) -> ServerAddr {
+        self.inner.server_addr()
     }
 }
 
@@ -31,8 +29,8 @@ impl PacketReceiver {
 pub trait PacketReceiverTrait: PacketReceiverClone + Send + Sync {
     /// Receives a packet from the Client Socket
     fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError>;
-    /// Get SocketAddr PacketReceiver is receiving from
-    fn remote_addr(&self) -> SocketAddr;
+    /// Get the Server's Socket address
+    fn server_addr(&self) -> ServerAddr;
 }
 
 /// Used to receive packets from the Client Socket
@@ -98,9 +96,9 @@ impl PacketReceiverTrait for ConditionedPacketReceiver {
         }
     }
 
-    /// Get SocketAddr PacketReceiver is receiving from
-    fn remote_addr(&self) -> SocketAddr {
-        self.inner_receiver.remote_addr()
+    /// Get the Server's Socket address
+    fn server_addr(&self) -> ServerAddr {
+        self.inner_receiver.server_addr()
     }
 }
 

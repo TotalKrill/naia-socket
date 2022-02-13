@@ -4,12 +4,15 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait};
+use crate::{
+    error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait,
+    server_addr::ServerAddr,
+};
 
 /// Handles receiving messages from the Server through a given Client Socket
 #[derive(Clone)]
 pub struct PacketReceiverImpl {
-    remote_addr: SocketAddr,
+    server_addr: SocketAddr,
     local_socket: Arc<Mutex<UdpSocket>>,
     receive_buffer: Vec<u8>,
 }
@@ -17,9 +20,9 @@ pub struct PacketReceiverImpl {
 impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the Server's address & a
     /// reference back to the parent Socket
-    pub fn new(remote_addr: SocketAddr, local_socket: Arc<Mutex<UdpSocket>>) -> Self {
+    pub fn new(server_addr: SocketAddr, local_socket: Arc<Mutex<UdpSocket>>) -> Self {
         PacketReceiverImpl {
-            remote_addr,
+            server_addr,
             local_socket,
             receive_buffer: vec![0; 1472],
         }
@@ -38,7 +41,7 @@ impl PacketReceiverTrait for PacketReceiverImpl {
             .map(move |(recv_len, address)| (&buffer[..recv_len], address))
         {
             Ok((payload, address)) => {
-                if address == self.remote_addr {
+                if address == self.server_addr {
                     return Ok(Some(Packet::new(payload.to_vec())));
                 } else {
                     let err_message = format!(
@@ -58,8 +61,8 @@ impl PacketReceiverTrait for PacketReceiverImpl {
         }
     }
 
-    /// Get SocketAddr PacketReceiver is receiving from
-    fn remote_addr(&self) -> SocketAddr {
-        self.remote_addr
+    /// Get the Server's Socket address
+    fn server_addr(&self) -> ServerAddr {
+        ServerAddr::Found(self.server_addr)
     }
 }
