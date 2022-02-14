@@ -40,6 +40,7 @@ impl App {
         match self.packet_receiver.receive() {
             Ok(Some(packet)) => {
                 let message_from_server = String::from_utf8_lossy(packet.payload());
+
                 let server_addr = match self.packet_receiver.server_addr() {
                     ServerAddr::Found(addr) => addr.to_string(),
                     _ => "".to_string(),
