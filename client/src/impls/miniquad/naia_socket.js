@@ -22,7 +22,6 @@ const naia_socket = {
     },
 
     connect: function (server_socket_address, rtc_path) {
-        let _this = this;
         let server_socket_address_string = naia_socket.get_js_object(server_socket_address);
         let rtc_path_string = naia_socket.get_js_object(rtc_path);
         let SESSION_ADDRESS = server_socket_address_string + rtc_path_string;
@@ -41,14 +40,14 @@ const naia_socket = {
         this.channel.binaryType = "arraybuffer";
 
         this.channel.onopen = function() {
-            _this.channel.onmessage = function(evt) {
+            naia_socket.channel.onmessage = function(evt) {
                 let array = new Uint8Array(evt.data);
                 wasm_exports.receive(naia_socket.js_object(array));
             };
         };
 
         this.channel.onerror = function(evt) {
-            _this.error("data channel error", evt.message);
+            naia_socket.error("data channel error", evt.message);
         };
 
         peer.onicecandidate = function(evt) {
@@ -69,28 +68,28 @@ const naia_socket = {
                     let response = JSON.parse(request.responseText);
                     peer.setRemoteDescription(new RTCSessionDescription(response.answer)).then(function() {
                         let response_candidate = response.candidate;
-                        wasm_exports.receive_candidate(this.js_object(JSON.stringify(response_candidate.candidate)));
+                        wasm_exports.receive_candidate(naia_socket.js_object(JSON.stringify(response_candidate.candidate)));
                         let candidate = new RTCIceCandidate(response_candidate);
                         peer.addIceCandidate(candidate).then(function() {
                             console.log("add ice candidate success");
                         }).catch(function(err) {
-                            _this.error("error during 'addIceCandidate'", err);
+                            naia_socket.error("error during 'addIceCandidate'", err);
                         });
                     }).catch(function(err) {
-                        _this.error("error during 'setRemoteDescription'", err);
+                        naia_socket.error("error during 'setRemoteDescription'", err);
                     });
                 } else {
                     let error_str = "error sending POST request to " + SESSION_ADDRESS;
-                    _this.error(error_str, { response_status: request.status });
+                    naia_socket.error(error_str, { response_status: request.status });
                 }
             };
             request.onerror = function(err) {
                 let error_str = "error sending POST request to " + SESSION_ADDRESS;
-                _this.error(error_str, err);
+                naia_socket.error(error_str, err);
             };
             request.send(peer.localDescription.sdp);
         }).catch(function(err) {
-            _this.error("error during 'createOffer'", err);
+            naia_socket.error("error during 'createOffer'", err);
         });
     },
 

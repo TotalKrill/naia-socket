@@ -17,8 +17,8 @@ edition = "2021"
 maintenance = { status = "actively-developed" }
 
 [features]
-wbindgen = [ "naia-socket-shared/wbindgen", "wasm-bindgen", "js-sys", "web_sys", "serde", "serde_derive", "serde_json" ]
-mquad = [ "naia-socket-shared/mquad", "miniquad" ]
+wbindgen = [ "naia-socket-shared/wbindgen", "wasm-bindgen", "js-sys", "web_sys", "serde", "serde_derive", "serde_json", "regex" ]
+mquad = [ "naia-socket-shared/mquad", "miniquad", "regex" ]
 
 [dependencies]
 naia-socket-shared = { path = "../shared", version = "=0.7.3" }
@@ -36,3 +36,4 @@ serde = { version = "^1.0.59", optional = true  }
 serde_derive = { version = "^1.0.59", optional = true  }
 serde_json = { version = "^1.0.59", optional = true }
 miniquad = { version = "=0.3.0-alpha.28", features = ["log-impl"], optional = true }
+regex = { version = "1.5.4", optional = true }

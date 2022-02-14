@@ -24,7 +24,7 @@ pub fn parse_server_url(server_url_str: &str) -> Url {
 }
 
 cfg_if! {
-    if #[cfg(all(not(target_arch = "wasm32"), not(feature = "wbindgen"), not(feature = "mquad")))]
+    if #[cfg(not(target_arch = "wasm32"))]
     {
         pub fn url_to_socket_addr(url: &Url) -> SocketAddr {
             const SOCKET_PARSE_FAIL_STR: &str = "could not get SocketAddr from input URL";
@@ -49,9 +49,8 @@ cfg_if! {
             }
         }
     } else {
-        use std::net::{IpAddr, Ipv4Addr};
         pub fn url_to_socket_addr(_url: &Url) -> SocketAddr {
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(9, 9, 9, 9)), 9999)
+            panic!("should not need this method for Wasm apps");
         }
     }
 }
