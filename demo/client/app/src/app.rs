@@ -26,7 +26,7 @@ impl App {
         let shared_config = shared_config();
 
         let mut socket = Socket::new(shared_config);
-        socket.connect("http://www.localdev.com:14191");
+        socket.connect("http://127.0.0.1:14191");
 
         App {
             packet_sender: socket.packet_sender(),
