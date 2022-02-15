@@ -1,6 +1,6 @@
 use naia_socket_shared::{link_condition_logic, LinkConditionerConfig, TimeQueue};
 
-use super::{error::NaiaClientSocketError, packet::Packet};
+use super::{error::NaiaClientSocketError, packet::Packet, server_addr::ServerAddr};
 
 /// Used to receive packets from the Client Socket
 #[derive(Clone)]
@@ -18,12 +18,19 @@ impl PacketReceiver {
     pub fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError> {
         return self.inner.receive();
     }
+
+    /// Get the Server's Socket address
+    pub fn server_addr(&self) -> ServerAddr {
+        self.inner.server_addr()
+    }
 }
 
 /// Used to receive packets from the Client Socket
 pub trait PacketReceiverTrait: PacketReceiverClone + Send + Sync {
     /// Receives a packet from the Client Socket
     fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError>;
+    /// Get the Server's Socket address
+    fn server_addr(&self) -> ServerAddr;
 }
 
 /// Used to receive packets from the Client Socket
@@ -59,7 +66,7 @@ impl ConditionedPacketReceiver {
         self.time_queue.has_item()
     }
 
-    fn get_packet(&mut self) -> Packet {
+    fn receive(&mut self) -> Packet {
         self.time_queue.pop_item().unwrap()
     }
 }
@@ -70,23 +77,28 @@ impl PacketReceiverTrait for ConditionedPacketReceiver {
             match self.inner_receiver.receive() {
                 Ok(option) => match option {
                     None => {
-                        break; //TODO: Handle error here
+                        break;
                     }
                     Some(packet) => {
                         self.process_packet(packet);
                     }
                 },
-                Err(_) => {
-                    break; //TODO: Handle error here
+                Err(err) => {
+                    return Err(err);
                 }
             }
         }
 
         if self.has_packet() {
-            return Ok(Some(self.get_packet()));
+            return Ok(Some(self.receive()));
         } else {
             return Ok(None);
         }
+    }
+
+    /// Get the Server's Socket address
+    fn server_addr(&self) -> ServerAddr {
+        self.inner_receiver.server_addr()
     }
 }
 

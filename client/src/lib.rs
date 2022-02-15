@@ -9,6 +9,8 @@
     unused_qualifications
 )]
 
+extern crate log;
+
 #[macro_use]
 extern crate cfg_if;
 
@@ -21,10 +23,17 @@ cfg_if! {
     }
 }
 
+cfg_if! {
+    if #[cfg(target_arch = "wasm32")] {
+        mod wasm_utils;
+    } else {}
+}
+
 mod error;
 mod impls;
 mod packet;
 mod packet_receiver;
+mod server_addr;
 
 pub use naia_socket_shared::Timer;
 
@@ -32,6 +41,7 @@ pub use error::NaiaClientSocketError;
 pub use impls::{PacketSender, Socket};
 pub use packet::Packet;
 pub use packet_receiver::PacketReceiver;
+pub use server_addr::ServerAddr;
 
 cfg_if! {
     if #[cfg(all(target_arch = "wasm32", feature = "wbindgen", feature = "mquad"))]

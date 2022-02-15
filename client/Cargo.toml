@@ -2,35 +2,38 @@
 name = "naia-client-socket"
 version = "0.7.3"
 authors = ["connorcarpenter <connorcarpenter@gmail.com>"]
+workspace = ".."
 description = "Abstraction to expose common API over a UDP socket on Linux, and a unreliable WebRTC datachannel on the browser"
 documentation = "https://docs.rs/naia-client-socket"
 homepage = "https://github.com/naia-rs/naia-socket"
 repository = "https://github.com/naia-rs/naia-socket"
 readme = "../README.md"
 keywords = ["wasm", "webrtc", "udp", "networking", "gamedev"]
-license = "MIT OR Apache-2.0"
 categories = ["network-programming", "game-development", "wasm", "web-programming"]
+license = "MIT OR Apache-2.0"
 edition = "2021"
 
 [badges]
 maintenance = { status = "actively-developed" }
 
 [features]
-wbindgen = [ "naia-socket-shared/wbindgen", "url", "wasm-bindgen", "js-sys", "web_sys", "serde", "serde_derive" ]
-mquad = [ "naia-socket-shared/mquad", "miniquad" ]
+wbindgen = [ "naia-socket-shared/wbindgen", "wasm-bindgen", "js-sys", "web_sys", "serde", "serde_derive", "serde_json", "regex" ]
+mquad = [ "naia-socket-shared/mquad", "miniquad", "regex" ]
 
 [dependencies]
 naia-socket-shared = { path = "../shared", version = "=0.7.3" }
 cfg-if = "0.1.10"
 log = { version = "0.4" }
-url = { version = "2.1.1", optional = true }
-wasm-bindgen = { version = "0.2.45", features = [ "serde-serialize" ], optional = true  }
+url = { version = "2.2.2" }
+wasm-bindgen = { version = "0.2.68", optional = true  }
 js-sys = { version = "0.3", optional = true  }
 web_sys = { version = "0.3.22", package = "web-sys", features = [
     "RtcDataChannel", "RtcDataChannelInit", "RtcDataChannelType",
-    "RtcIceCandidate", "RtcIceCandidateInit",
+    "RtcIceCandidate", "RtcIceCandidateInit", "RtcConfiguration",
     "RtcPeerConnection", "RtcSdpType",  "RtcSessionDescription", "RtcSessionDescriptionInit",
     "XmlHttpRequest", "XmlHttpRequestEventTarget", "MessageEvent", "ProgressEvent", "ErrorEvent", "Blob" ], optional = true  }
 serde = { version = "^1.0.59", optional = true  }
 serde_derive = { version = "^1.0.59", optional = true  }
+serde_json = { version = "^1.0.59", optional = true }
 miniquad = { version = "=0.3.0-alpha.28", features = ["log-impl"], optional = true }
+regex = { version = "1.5.4", optional = true }

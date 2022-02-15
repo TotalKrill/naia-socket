@@ -1,13 +1,13 @@
 extern crate log;
 
-use std::{cell::RefCell, collections::VecDeque, net::SocketAddr, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use naia_socket_shared::SocketConfig;
+use naia_socket_shared::{parse_server_url, SocketConfig};
 
 use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
 
 use super::{
-    packet_receiver::PacketReceiverImpl, packet_sender::PacketSender,
+    addr_cell::AddrCell, packet_receiver::PacketReceiverImpl, packet_sender::PacketSender,
     webrtc_internal::webrtc_initialize,
 };
 
@@ -35,23 +35,30 @@ impl Socket {
     }
 
     /// Connects to the given server address
-    pub fn connect(&mut self, server_address: SocketAddr) {
+    pub fn connect(&mut self, server_session_url: &str) {
         if self.io.is_some() {
             panic!("Socket already listening!");
         }
 
+        let server_url = parse_server_url(server_session_url);
+
+        let addr_cell = AddrCell::new();
         let message_queue = Rc::new(RefCell::new(VecDeque::new()));
         let data_channel = webrtc_initialize(
-            server_address,
+            server_url,
             self.config.rtc_endpoint_path.clone(),
             message_queue.clone(),
+            addr_cell.clone(),
         );
 
         let dropped_outgoing_messages = Rc::new(RefCell::new(VecDeque::new()));
 
-        let packet_sender =
-            PacketSender::new(data_channel.clone(), dropped_outgoing_messages.clone());
-        let packet_receiver = PacketReceiverImpl::new(message_queue.clone());
+        let packet_sender = PacketSender::new(
+            data_channel.clone(),
+            dropped_outgoing_messages.clone(),
+            addr_cell.clone(),
+        );
+        let packet_receiver = PacketReceiverImpl::new(message_queue.clone(), addr_cell.clone());
 
         let sender = packet_sender.clone();
         let receiver: Box<dyn PacketReceiverTrait> = {
@@ -70,7 +77,7 @@ impl Socket {
     }
 
     /// Gets a PacketSender which can be used to send packets through the Socket
-    pub fn get_packet_sender(&self) -> PacketSender {
+    pub fn packet_sender(&self) -> PacketSender {
         return self
             .io
             .as_ref()
@@ -81,7 +88,7 @@ impl Socket {
 
     /// Gets a PacketReceiver which can be used to receive packets from the
     /// Socket
-    pub fn get_packet_receiver(&self) -> PacketReceiver {
+    pub fn packet_receiver(&self) -> PacketReceiver {
         return self
             .io
             .as_ref()

@@ -7,5 +7,5 @@ members = [
     "demo/client/app",
     "demo/client/wasm_bindgen",
     "demo/client/miniquad",
-    "demo/dev_http_server"
     ]
+resolver = "2"

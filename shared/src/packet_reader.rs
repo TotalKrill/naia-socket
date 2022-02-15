@@ -33,12 +33,12 @@ impl<'s> PacketReader<'s> {
     }
 
     /// Get a reference to the Cursor
-    pub fn get_cursor(&mut self) -> &mut Cursor<&'s [u8]> {
+    pub fn cursor(&mut self) -> &mut Cursor<&'s [u8]> {
         return &mut self.cursor;
     }
 
     /// Get a reference to the underlying payload byte buffer
-    pub fn get_buffer(&self) -> &'s [u8] {
+    pub fn buffer(&self) -> &'s [u8] {
         return &self.buffer;
     }
 }

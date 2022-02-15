@@ -4,23 +4,26 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait};
+use crate::{
+    error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait,
+    server_addr::ServerAddr,
+};
 
 /// Handles receiving messages from the Server through a given Client Socket
 #[derive(Clone)]
 pub struct PacketReceiverImpl {
-    address: SocketAddr,
-    socket: Arc<Mutex<UdpSocket>>,
+    server_addr: SocketAddr,
+    local_socket: Arc<Mutex<UdpSocket>>,
     receive_buffer: Vec<u8>,
 }
 
 impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the Server's address & a
     /// reference back to the parent Socket
-    pub fn new(address: SocketAddr, socket: Arc<Mutex<UdpSocket>>) -> Self {
+    pub fn new(server_addr: SocketAddr, local_socket: Arc<Mutex<UdpSocket>>) -> Self {
         PacketReceiverImpl {
-            address,
-            socket,
+            server_addr,
+            local_socket,
             receive_buffer: vec![0; 1472],
         }
     }
@@ -30,7 +33,7 @@ impl PacketReceiverTrait for PacketReceiverImpl {
     fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError> {
         let buffer: &mut [u8] = self.receive_buffer.as_mut();
         match self
-            .socket
+            .local_socket
             .as_ref()
             .lock()
             .unwrap()
@@ -38,12 +41,14 @@ impl PacketReceiverTrait for PacketReceiverImpl {
             .map(move |(recv_len, address)| (&buffer[..recv_len], address))
         {
             Ok((payload, address)) => {
-                if address == self.address {
+                if address == self.server_addr {
                     return Ok(Some(Packet::new(payload.to_vec())));
                 } else {
-                    return Err(NaiaClientSocketError::Message(
-                        "Unknown sender.".to_string(),
-                    ));
+                    let err_message = format!(
+                        "Received packet from unknown sender with a socket address of: {}",
+                        address
+                    );
+                    return Err(NaiaClientSocketError::Message(err_message.to_string()));
                 }
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
@@ -54,5 +59,10 @@ impl PacketReceiverTrait for PacketReceiverImpl {
                 return Err(NaiaClientSocketError::Wrapped(Box::new(e)));
             }
         }
+    }
+
+    /// Get the Server's Socket address
+    fn server_addr(&self) -> ServerAddr {
+        ServerAddr::Found(self.server_addr)
     }
 }

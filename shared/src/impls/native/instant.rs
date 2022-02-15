@@ -30,7 +30,7 @@ impl Instant {
     }
 
     /// Returns inner Instant implementation
-    pub fn get_inner(&self) -> std::time::Instant {
+    pub fn inner(&self) -> std::time::Instant {
         return self.inner.clone();
     }
 }

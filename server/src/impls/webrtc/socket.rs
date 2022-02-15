@@ -7,7 +7,7 @@ use webrtc_unreliable::{
     MessageResult, MessageType, SendError, Server as InnerRtcServer, SessionEndpoint,
 };
 
-use naia_socket_shared::SocketConfig;
+use naia_socket_shared::{url_to_socket_addr, SocketConfig};
 
 use crate::{
     async_socket::AsyncSocketTrait, error::NaiaServerSocketError, packet::Packet,
@@ -34,7 +34,7 @@ impl Socket {
 
         let rtc_server = RtcServer::new(
             server_addrs.webrtc_listen_addr,
-            server_addrs.public_webrtc_addr,
+            url_to_socket_addr(&server_addrs.public_webrtc_url),
         )
         .await;
 
@@ -113,7 +113,7 @@ impl AsyncSocketTrait for Socket {
         }
     }
 
-    fn get_sender(&self) -> mpsc::Sender<Packet> {
+    fn sender(&self) -> mpsc::Sender<Packet> {
         return self.to_client_sender.clone();
     }
 }

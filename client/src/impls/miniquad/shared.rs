@@ -1,8 +1,13 @@
 use std::collections::VecDeque;
 
+use crate::{server_addr::ServerAddr, wasm_utils::candidate_to_addr};
+
+// Static vars
 pub static mut MESSAGE_QUEUE: Option<VecDeque<Box<[u8]>>> = None;
 pub static mut ERROR_QUEUE: Option<VecDeque<String>> = None;
+pub static mut SERVER_ADDR: ServerAddr = ServerAddr::Finding;
 
+// Javascript methods
 extern "C" {
     pub fn naia_connect(server_socket_address: JsObject, rtc_path: JsObject);
     pub fn naia_send(message: JsObject);
@@ -16,6 +21,45 @@ extern "C" {
     pub fn naia_u8_array_length(js_object: JsObjectWeak) -> u32;
 }
 
+// Rust methods
+#[no_mangle]
+pub extern "C" fn receive(message: JsObject) {
+    let mut message_string = Vec::<u8>::new();
+
+    message.to_u8_array(&mut message_string);
+
+    unsafe {
+        if let Some(msg_queue) = &mut MESSAGE_QUEUE {
+            msg_queue.push_back(message_string.into_boxed_slice());
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn error(error: JsObject) {
+    let mut error_string = String::new();
+
+    error.to_string(&mut error_string);
+
+    unsafe {
+        if let Some(error_queue) = &mut ERROR_QUEUE {
+            error_queue.push_back(error_string);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn receive_candidate(candidate_js: JsObject) {
+    let mut candidate_str = String::new();
+
+    candidate_js.to_string(&mut candidate_str);
+
+    unsafe {
+        SERVER_ADDR = candidate_to_addr(&candidate_str);
+    }
+}
+
+// JsObject
 #[repr(transparent)]
 pub struct JsObject(u32);
 
@@ -59,31 +103,5 @@ impl JsObject {
         }
         unsafe { buf.set_len(len as usize) };
         unsafe { naia_unwrap_to_u8_array(self.weak(), buf.as_mut_ptr(), len as u32) };
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn receive(message: JsObject) {
-    let mut message_string = Vec::<u8>::new();
-
-    message.to_u8_array(&mut message_string);
-
-    unsafe {
-        if let Some(msg_queue) = &mut MESSAGE_QUEUE {
-            msg_queue.push_back(message_string.into_boxed_slice());
-        }
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn error(error: JsObject) {
-    let mut error_string = String::new();
-
-    error.to_string(&mut error_string);
-
-    unsafe {
-        if let Some(error_queue) = &mut ERROR_QUEUE {
-            error_queue.push_back(error_string);
-        }
     }
 }

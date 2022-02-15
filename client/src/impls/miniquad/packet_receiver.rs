@@ -1,10 +1,13 @@
-use crate::{error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait};
+use crate::{
+    error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait,
+    server_addr::ServerAddr,
+};
 
-use super::shared::{naia_resend_dropped_messages, ERROR_QUEUE, MESSAGE_QUEUE};
+use super::shared::{naia_resend_dropped_messages, ERROR_QUEUE, MESSAGE_QUEUE, SERVER_ADDR};
 
 /// Handles receiving messages from the Server through a given Client Socket
 #[derive(Clone)]
-pub struct PacketReceiverImpl {}
+pub struct PacketReceiverImpl;
 
 impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the RtcDataChannel and a
@@ -33,5 +36,10 @@ impl PacketReceiverTrait for PacketReceiverImpl {
         };
 
         Ok(None)
+    }
+
+    /// Get the Server's Socket address
+    fn server_addr(&self) -> ServerAddr {
+        unsafe { SERVER_ADDR }
     }
 }

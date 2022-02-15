@@ -69,28 +69,56 @@ async fn listen(
 async fn serve(mut session_endpoint: SessionEndpoint, mut stream: Arc<Async<TcpStream>>) {
     let remote_addr = stream.get_ref().local_addr().unwrap();
     let mut success: bool = false;
+    let mut headers_read: bool = false;
+    let mut content_length: Option<usize> = None;
+    let mut rtc_url_match = false;
+    let mut body: Vec<u8> = Vec::new();
 
+    let buf_reader = BufReader::new(stream.clone());
+    let mut bytes = buf_reader.bytes();
     {
-        let buf_reader = BufReader::new(stream.clone());
-        let mut lines = buf_reader.lines();
-        {
-            if let Some(line) = lines.next().await {
-                let line = line.unwrap();
-                if line.starts_with(RTC_URL_PATH.get().unwrap()) {
-                    while let Some(line) = lines.next().await {
-                        let line = line.unwrap();
-                        if line.len() == 0 {
-                            success = true;
-                            break;
-                        }
+        let mut line: Vec<u8> = Vec::new();
+        while let Some(byte) = bytes.next().await {
+            let byte = byte.unwrap();
+
+            if headers_read {
+                if let Some(content_length) = content_length {
+                    body.push(byte);
+
+                    if body.len() >= content_length {
+                        success = true;
+                        break;
                     }
+                } else {
+                    info!("request was missing Content-Length header");
+                    break;
                 }
+            }
+
+            if byte == b'\r' {
+                continue;
+            } else if byte == b'\n' {
+                let str = String::from_utf8(line.clone()).unwrap();
+                line.clear();
+
+                if rtc_url_match {
+                    if str.starts_with("Content-Length: ") {
+                        content_length = str.replace("Content-Length: ", "").parse::<usize>().ok();
+                    } else if str.len() == 0 {
+                        headers_read = true;
+                    }
+                } else if str.starts_with(RTC_URL_PATH.get().unwrap()) {
+                    rtc_url_match = true;
+                }
+            } else {
+                line.push(byte);
             }
         }
 
         if success {
             success = false;
 
+            let mut lines = body.lines();
             let buf = RequestBuffer::new(&mut lines);
 
             match session_endpoint.http_session_request(buf).await {
@@ -105,12 +133,15 @@ async fn serve(mut session_endpoint: SessionEndpoint, mut stream: Arc<Async<TcpS
                     let mut out = response_header_to_vec(&resp);
                     out.extend_from_slice(resp.body().as_bytes());
 
-                    info!("WebRTC session request from {}", remote_addr);
+                    info!("Successful WebRTC session request from {}", remote_addr);
 
                     stream.write_all(&out).await.unwrap();
                 }
                 Err(err) => {
-                    info!("error: {}", err);
+                    info!(
+                        "Invalid WebRTC session request from {}. Error: {}",
+                        remote_addr, err
+                    );
                 }
             }
         }

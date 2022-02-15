@@ -3,6 +3,8 @@ use std::{
     net::{SocketAddr, UdpSocket},
 };
 
+use log::info;
+
 use async_io::Async;
 use async_trait::async_trait;
 use futures_channel::mpsc;
@@ -32,6 +34,11 @@ impl Socket {
         let socket = Async::new(UdpSocket::bind(&addrs.session_listen_addr).unwrap()).unwrap();
 
         let (to_client_sender, to_client_receiver) = mpsc::channel(CLIENT_CHANNEL_SIZE);
+
+        info!(
+            "UDP server listening on socket: {}",
+            addrs.session_listen_addr
+        );
 
         Socket {
             socket,
@@ -100,7 +107,7 @@ impl AsyncSocketTrait for Socket {
         }
     }
 
-    fn get_sender(&self) -> mpsc::Sender<Packet> {
+    fn sender(&self) -> mpsc::Sender<Packet> {
         return self.to_client_sender.clone();
     }
 }

@@ -1,17 +1,9 @@
-use std::net::SocketAddr;
-
 use naia_socket_shared::{LinkConditionerConfig, SocketConfig};
 
-pub const PING_MSG: &str = "ping";
-pub const PONG_MSG: &str = "pong";
+pub const PING_MSG: &str = "PING";
+pub const PONG_MSG: &str = "PONG";
 
-pub fn get_server_address() -> SocketAddr {
-    return "127.0.0.1:14191"
-        .parse()
-        .expect("could not parse socket address from string");
-}
-
-pub fn get_shared_config() -> SocketConfig {
+pub fn shared_config() -> SocketConfig {
     //let link_condition = None;
     let link_condition = Some(LinkConditionerConfig::average_condition());
     //    let link_condition = Some(LinkConditionerConfig {

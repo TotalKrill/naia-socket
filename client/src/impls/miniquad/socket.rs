@@ -1,6 +1,6 @@
-use std::{collections::VecDeque, net::SocketAddr};
+use std::collections::VecDeque;
 
-use naia_socket_shared::SocketConfig;
+use naia_socket_shared::{parse_server_url, SocketConfig};
 
 use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
 
@@ -12,14 +12,12 @@ use super::{
 
 /// A client-side socket which communicates with an underlying unordered &
 /// unreliable protocol
-
 pub struct Socket {
     config: SocketConfig,
     io: Option<Io>,
 }
 
 /// Contains internal socket packet sender/receiver
-
 struct Io {
     /// Used to send packets through the socket
     pub packet_sender: PacketSender,
@@ -34,12 +32,14 @@ impl Socket {
     }
 
     /// Connects to the given server address
-    pub fn connect(&mut self, server_address: SocketAddr) {
+    pub fn connect(&mut self, server_session_url: &str) {
+        let server_url = parse_server_url(server_session_url);
+
         unsafe {
             MESSAGE_QUEUE = Some(VecDeque::new());
             ERROR_QUEUE = Some(VecDeque::new());
             naia_connect(
-                JsObject::string(server_address.to_string().as_str()),
+                JsObject::string(server_url.to_string().as_str()),
                 JsObject::string(self.config.rtc_endpoint_path.as_str()),
             );
         }
@@ -63,7 +63,7 @@ impl Socket {
     }
 
     /// Gets a PacketSender which can be used to send packets through the Socket
-    pub fn get_packet_sender(&self) -> PacketSender {
+    pub fn packet_sender(&self) -> PacketSender {
         return self
             .io
             .as_ref()
@@ -74,7 +74,7 @@ impl Socket {
 
     /// Gets a PacketReceiver which can be used to receive packets from the
     /// Socket
-    pub fn get_packet_receiver(&self) -> PacketReceiver {
+    pub fn packet_receiver(&self) -> PacketReceiver {
         return self
             .io
             .as_ref()

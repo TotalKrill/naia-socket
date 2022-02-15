@@ -10,5 +10,5 @@ pub trait AsyncSocketTrait: Send + Sync {
     async fn receive(&mut self) -> Result<Packet, NaiaServerSocketError>;
     /// Gets a MessageSender you can use to send messages through the Server
     /// Socket
-    fn get_sender(&self) -> futures_channel::mpsc::Sender<Packet>;
+    fn sender(&self) -> futures_channel::mpsc::Sender<Packet>;
 }
