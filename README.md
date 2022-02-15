@@ -16,45 +16,36 @@ Utilizes Kyren's wonderful [webrtc-unreliable](https://github.com/kyren/webrtc-u
 
 `naia-client-socket` is usable with both `wasm-bindgen` and [miniquad](https://github.com/not-fl3/miniquad) (build for these with the feature `wbindgen` & `mquad`, respectively)
 
-## Demos
+## Demo
 
 ### Server:
 
-To run a UDP server on Linux: (that will be able to communicate with Linux clients)
+To run a UDP server: (that will be able to communicate with Linux clients)
 
     1. `cd demo/server`
     2. `cargo run --features "use-udp"`
 
-To run a WebRTC server on Linux: (that will be able to communicate with Web clients)
+To run a WebRTC server: (that will be able to communicate with Web clients)
 
     1. `cd demo/server`
     2. `cargo run --features "use-webrtc"`
 
 ### Client:
 
-To run a UDP client on Linux: (that will be able to communicate with a UDP server)
+To run a UDP client: (that will be able to communicate with a UDP server)
 
     1. `cd demo/client/wasm_bindgen`
     2. `cargo run`
 
 To run a WebRTC client on Web using wasm-bindgen: (that will be able to communicate with a WebRTC server)
 
-    1. Enter in your IP Address at the appropriate spot in demo/client/wasm-bindgen/src/app.rs
-    2. `cd demo/client/wasm_bindgen`
-    3. `npm install`              //should only need to do this once to install dependencies
-    4. `npm run start`            //this will open a web browser, and hot reload
+    1. `cd demo/client/wasm_bindgen`
+    2. `cargo make serve` //this will open a web browser pointing at http://127.0.0.1:4000/
 
 To run a WebRTC client on Web using miniquad: (that will be able to communicate with a WebRTC server)
 
-    1. Enter in your IP Address at the appropriate spot in demo/client/app/src/app.rs
-    2. `cargo install watchexec`   //should only need to do this once to install watchexec, which will auto-reload for you
-    3. `sh demo/client/miniquad/deploy.sh`               //this will open a web browser, and hot reload
-
-To simply build these demos instead of running them, substitute the above commands like so:
-
-    `cargo build` for `cargo run`, and
-
-    `npm run build` for `npm run start`
+    1. `cd demo/client/miniquad`
+    2. `cargo make serve` //this will open a web browser pointing at http://127.0.0.1:4000/
 
 ### Notes:
 Hosting a WebRTC server on `127.0.0.1` doesn't seem to work out of the box when using a Firefox browser, try using Chrome for development purposes
