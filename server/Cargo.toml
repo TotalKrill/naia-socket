@@ -1,6 +1,6 @@
 [package]
 name = "naia-server-socket"
-version = "0.7.4"
+version = "0.8.0"
 authors = ["connorcarpenter <connorcarpenter@gmail.com>"]
 workspace = ".."
 description = "An abstraction to provide a common API over either a UDP socket or a service that can establish WebRTC connections"
@@ -24,7 +24,7 @@ use-udp = [ ]
 use-webrtc = [ "webrtc-unreliable", "async-dup", "http", "futures-core" ]
 
 [dependencies]
-naia-socket-shared = { path = "../shared", version = "=0.7.4" }
+naia-socket-shared = { path = "../shared", version = "=0.8.0" }
 log = { version = "0.4" }
 url = { version = "2.2.2" }
 cfg-if = { version = "0.1.10" }
