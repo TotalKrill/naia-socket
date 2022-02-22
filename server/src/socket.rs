@@ -4,7 +4,7 @@ use futures_util::SinkExt;
 
 use naia_socket_shared::SocketConfig;
 
-use crate::{executor, impls::Socket as AsyncSocket};
+use crate::{executor, impls::Socket as AsyncSocket, io::Io};
 
 use super::{
     async_socket::AsyncSocketTrait,
@@ -19,14 +19,6 @@ use super::{
 pub struct Socket {
     config: SocketConfig,
     io: Option<Io>,
-}
-
-/// Contains internal socket packet sender/receiver
-struct Io {
-    /// Used to send packets through the socket
-    pub packet_sender: PacketSender,
-    /// Used to receive packets from the socket
-    pub packet_receiver: PacketReceiver,
 }
 
 impl Socket {

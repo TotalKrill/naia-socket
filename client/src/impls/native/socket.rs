@@ -9,7 +9,10 @@ use log::info;
 
 use naia_socket_shared::{find_my_ip_address, parse_server_url, url_to_socket_addr, SocketConfig};
 
-use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
+use crate::{
+    io::Io,
+    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
+};
 
 use super::{packet_receiver::PacketReceiverImpl, packet_sender::PacketSender};
 
@@ -18,14 +21,6 @@ use super::{packet_receiver::PacketReceiverImpl, packet_sender::PacketSender};
 pub struct Socket {
     config: SocketConfig,
     io: Option<Io>,
-}
-
-/// Contains internal socket packet sender/receiver
-struct Io {
-    /// Used to send packets through the socket
-    pub packet_sender: PacketSender,
-    /// Used to receive packets from the socket
-    pub packet_receiver: PacketReceiver,
 }
 
 impl Socket {

@@ -31,6 +31,7 @@ cfg_if! {
 
 mod error;
 mod impls;
+mod io;
 mod packet;
 mod packet_receiver;
 mod server_addr;

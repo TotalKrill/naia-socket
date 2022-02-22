@@ -2,7 +2,10 @@ use std::collections::VecDeque;
 
 use naia_socket_shared::{parse_server_url, SocketConfig};
 
-use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
+use crate::{
+    io::Io,
+    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
+};
 
 use super::{
     packet_receiver::PacketReceiverImpl,
@@ -15,14 +18,6 @@ use super::{
 pub struct Socket {
     config: SocketConfig,
     io: Option<Io>,
-}
-
-/// Contains internal socket packet sender/receiver
-struct Io {
-    /// Used to send packets through the socket
-    pub packet_sender: PacketSender,
-    /// Used to receive packets from the socket
-    pub packet_receiver: PacketReceiver,
 }
 
 impl Socket {

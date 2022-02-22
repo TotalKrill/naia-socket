@@ -4,7 +4,10 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use naia_socket_shared::{parse_server_url, SocketConfig};
 
-use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
+use crate::{
+    io::Io,
+    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
+};
 
 use super::{
     addr_cell::AddrCell, packet_receiver::PacketReceiverImpl, packet_sender::PacketSender,
@@ -13,19 +16,9 @@ use super::{
 
 /// A client-side socket which communicates with an underlying unordered &
 /// unreliable protocol
-
 pub struct Socket {
     config: SocketConfig,
     io: Option<Io>,
-}
-
-/// Contains internal socket packet sender/receiver
-
-struct Io {
-    /// Used to send packets through the socket
-    pub packet_sender: PacketSender,
-    /// Used to receive packets from the socket
-    pub packet_receiver: PacketReceiver,
 }
 
 impl Socket {
