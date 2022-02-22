@@ -22,8 +22,11 @@ pub struct Socket {
 
 impl Socket {
     /// Create a new Socket
-    pub fn new(config: SocketConfig) -> Self {
-        Socket { config, io: None }
+    pub fn new(config: &SocketConfig) -> Self {
+        Socket {
+            config: config.clone(),
+            io: None,
+        }
     }
 
     /// Connects to the given server address

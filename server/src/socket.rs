@@ -23,12 +23,15 @@ pub struct Socket {
 
 impl Socket {
     /// Create a new Socket
-    pub fn new(config: SocketConfig) -> Self {
-        Socket { config, io: None }
+    pub fn new(config: &SocketConfig) -> Self {
+        Socket {
+            config: config.clone(),
+            io: None,
+        }
     }
 
     /// Listens on the Socket for incoming communication from Clients
-    pub fn listen(&mut self, server_addrs: ServerAddrs) {
+    pub fn listen(&mut self, server_addrs: &ServerAddrs) {
         if self.io.is_some() {
             panic!("Socket already listening!");
         }

@@ -24,8 +24,8 @@ impl App {
         );
         let shared_config = shared_config();
 
-        let mut socket = Socket::new(shared_config);
-        socket.listen(server_address);
+        let mut socket = Socket::new(&shared_config);
+        socket.listen(&server_address);
 
         App {
             packet_sender: socket.packet_sender(),

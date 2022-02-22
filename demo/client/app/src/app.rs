@@ -23,9 +23,7 @@ impl App {
     pub fn new() -> App {
         info!("Naia Client Socket Demo started");
 
-        let shared_config = shared_config();
-
-        let mut socket = Socket::new(shared_config);
+        let mut socket = Socket::new(&shared_config());
         socket.connect("http://127.0.0.1:14191");
 
         App {
