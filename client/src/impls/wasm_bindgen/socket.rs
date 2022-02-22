@@ -63,7 +63,7 @@ impl Socket {
         let sender = packet_sender.clone();
         let receiver: Box<dyn PacketReceiverTrait> = {
             let inner_receiver = Box::new(packet_receiver.clone());
-            if let Some(config) = &self.config.link_condition_config {
+            if let Some(config) = &self.config.link_condition {
                 Box::new(ConditionedPacketReceiver::new(inner_receiver, config))
             } else {
                 inner_receiver

@@ -78,7 +78,7 @@ impl Socket {
         })
         .detach();
 
-        let conditioner_config = self.config.link_condition_config.clone();
+        let conditioner_config = self.config.link_condition.clone();
 
         let receiver: Box<dyn PacketReceiverTrait> = match &conditioner_config {
             Some(config) => Box::new(ConditionedPacketReceiverImpl::new(

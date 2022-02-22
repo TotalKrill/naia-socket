@@ -8,7 +8,7 @@ const DEFAULT_RTC_PATH: &str = "rtc_session";
 #[derive(Clone)]
 pub struct SocketConfig {
     /// Configuration used to simulate network conditions
-    pub link_condition_config: Option<LinkConditionerConfig>,
+    pub link_condition: Option<LinkConditionerConfig>,
     /// The endpoint URL path to use for initiating new WebRTC sessions
     pub rtc_endpoint_path: String,
 }
@@ -16,7 +16,7 @@ pub struct SocketConfig {
 impl SocketConfig {
     /// Creates a new SocketConfig
     pub fn new(
-        link_condition_config: Option<LinkConditionerConfig>,
+        link_condition: Option<LinkConditionerConfig>,
         rtc_endpoint_path: Option<String>,
     ) -> Self {
         let endpoint_path = {
@@ -28,7 +28,7 @@ impl SocketConfig {
         };
 
         SocketConfig {
-            link_condition_config,
+            link_condition,
             rtc_endpoint_path: endpoint_path,
         }
     }
@@ -37,7 +37,7 @@ impl SocketConfig {
 impl Default for SocketConfig {
     fn default() -> Self {
         Self {
-            link_condition_config: None,
+            link_condition: None,
             rtc_endpoint_path: DEFAULT_RTC_PATH.to_string(),
         }
     }

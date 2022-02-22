@@ -57,7 +57,7 @@ impl Socket {
 
         let packet_sender = PacketSender::new(server_socket_addr, socket.clone());
 
-        let conditioner_config = self.config.link_condition_config.clone();
+        let conditioner_config = self.config.link_condition.clone();
 
         let receiver: Box<dyn PacketReceiverTrait> = {
             let inner_receiver =
