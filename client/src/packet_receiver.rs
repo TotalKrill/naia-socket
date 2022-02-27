@@ -15,7 +15,7 @@ impl PacketReceiver {
     }
 
     /// Receives a packet from the Client Socket
-    pub fn receive(&mut self) -> Result<Option<Box<[u8]>>, NaiaClientSocketError> {
+    pub fn receive(&mut self) -> Result<Option<&[u8]>, NaiaClientSocketError> {
         return self.inner.receive();
     }
 
@@ -28,7 +28,7 @@ impl PacketReceiver {
 /// Used to receive packets from the Client Socket
 pub trait PacketReceiverTrait: PacketReceiverClone + Send + Sync {
     /// Receives a packet from the Client Socket
-    fn receive(&mut self) -> Result<Option<Box<[u8]>>, NaiaClientSocketError>;
+    fn receive(&mut self) -> Result<Option<&[u8]>, NaiaClientSocketError>;
     /// Get the Server's Socket address
     fn server_addr(&self) -> ServerAddr;
 }
@@ -39,6 +39,7 @@ pub struct ConditionedPacketReceiver {
     inner_receiver: Box<dyn PacketReceiverTrait>,
     link_conditioner_config: LinkConditionerConfig,
     time_queue: TimeQueue<Box<[u8]>>,
+    last_payload: Option<Box<[u8]>>,
 }
 
 impl ConditionedPacketReceiver {
@@ -51,15 +52,8 @@ impl ConditionedPacketReceiver {
             inner_receiver,
             link_conditioner_config: link_conditioner_config.clone(),
             time_queue: TimeQueue::new(),
+            last_payload: None,
         }
-    }
-
-    fn process_packet(&mut self, payload: Box<[u8]>) {
-        link_condition_logic::process_packet(
-            &self.link_conditioner_config,
-            &mut self.time_queue,
-            payload,
-        );
     }
 
     fn has_packet(&self) -> bool {
@@ -72,15 +66,19 @@ impl ConditionedPacketReceiver {
 }
 
 impl PacketReceiverTrait for ConditionedPacketReceiver {
-    fn receive(&mut self) -> Result<Option<Box<[u8]>>, NaiaClientSocketError> {
+    fn receive(&mut self) -> Result<Option<&[u8]>, NaiaClientSocketError> {
         loop {
             match self.inner_receiver.receive() {
                 Ok(option) => match option {
                     None => {
                         break;
                     }
-                    Some(packet) => {
-                        self.process_packet(packet);
+                    Some(payload) => {
+                        link_condition_logic::process_packet(
+                            &self.link_conditioner_config,
+                            &mut self.time_queue,
+                            payload.into(),
+                        );
                     }
                 },
                 Err(err) => {
@@ -90,7 +88,8 @@ impl PacketReceiverTrait for ConditionedPacketReceiver {
         }
 
         if self.has_packet() {
-            return Ok(Some(self.receive()));
+            self.last_payload = Some(self.receive());
+            return Ok(Some(self.last_payload.as_ref().unwrap()));
         } else {
             return Ok(None);
         }

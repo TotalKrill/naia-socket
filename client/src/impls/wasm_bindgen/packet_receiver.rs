@@ -10,6 +10,7 @@ use crate::{
 pub struct PacketReceiverImpl {
     message_queue: Rc<RefCell<VecDeque<Box<[u8]>>>>,
     server_addr: AddrCell,
+    last_payload: Option<Box<[u8]>>,
 }
 
 impl PacketReceiverImpl {
@@ -19,15 +20,17 @@ impl PacketReceiverImpl {
         PacketReceiverImpl {
             message_queue,
             server_addr,
+            last_payload: None,
         }
     }
 }
 
 impl PacketReceiverTrait for PacketReceiverImpl {
-    fn receive(&mut self) -> Result<Option<Box<[u8]>>, NaiaClientSocketError> {
+    fn receive(&mut self) -> Result<Option<&[u8]>, NaiaClientSocketError> {
         match self.message_queue.borrow_mut().pop_front() {
-            Some(packet) => {
-                return Ok(Some(packet));
+            Some(payload) => {
+                self.last_payload = Some(payload);
+                return Ok(Some(self.last_payload.as_ref().unwrap()));
             }
             None => {
                 return Ok(None);

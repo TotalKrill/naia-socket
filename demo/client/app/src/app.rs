@@ -17,6 +17,7 @@ pub struct App {
     packet_receiver: PacketReceiver,
     message_count: u8,
     timer: Timer,
+    server_addr_str: Option<String>,
 }
 
 impl App {
@@ -31,19 +32,26 @@ impl App {
             packet_receiver: socket.packet_receiver(),
             message_count: 0,
             timer: Timer::new(Duration::from_secs(1)),
+            server_addr_str: None,
         }
     }
 
     pub fn update(&mut self) {
+        if self.server_addr_str.is_none() {
+            if let ServerAddr::Found(addr) = self.packet_receiver.server_addr() {
+                self.server_addr_str = Some(addr.to_string());
+            }
+        }
+
         match self.packet_receiver.receive() {
             Ok(Some(packet)) => {
                 let message_from_server = String::from_utf8_lossy(&packet);
 
-                let server_addr = match self.packet_receiver.server_addr() {
-                    ServerAddr::Found(addr) => addr.to_string(),
-                    _ => "".to_string(),
-                };
-                info!("Client recv <- {}: {}", server_addr, message_from_server);
+                info!(
+                    "Client recv <- {}: {}",
+                    self.server_addr_str.as_ref().unwrap_or(&"".to_string()),
+                    message_from_server
+                );
 
                 if message_from_server.eq(PONG_MSG) {
                     self.message_count += 1;
