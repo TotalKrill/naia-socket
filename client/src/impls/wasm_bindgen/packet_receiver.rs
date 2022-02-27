@@ -2,21 +2,20 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use super::addr_cell::AddrCell;
 use crate::{
-    error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait,
-    server_addr::ServerAddr,
+    error::NaiaClientSocketError, packet_receiver::PacketReceiverTrait, server_addr::ServerAddr,
 };
 
 /// Handles receiving messages from the Server through a given Client Socket
 #[derive(Clone)]
 pub struct PacketReceiverImpl {
-    message_queue: Rc<RefCell<VecDeque<Packet>>>,
+    message_queue: Rc<RefCell<VecDeque<Box<[u8]>>>>,
     server_addr: AddrCell,
 }
 
 impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the RtcDataChannel and a
     /// reference to a list of dropped messages
-    pub fn new(message_queue: Rc<RefCell<VecDeque<Packet>>>, server_addr: AddrCell) -> Self {
+    pub fn new(message_queue: Rc<RefCell<VecDeque<Box<[u8]>>>>, server_addr: AddrCell) -> Self {
         PacketReceiverImpl {
             message_queue,
             server_addr,
@@ -25,7 +24,7 @@ impl PacketReceiverImpl {
 }
 
 impl PacketReceiverTrait for PacketReceiverImpl {
-    fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError> {
+    fn receive(&mut self) -> Result<Option<Box<[u8]>>, NaiaClientSocketError> {
         match self.message_queue.borrow_mut().pop_front() {
             Some(packet) => {
                 return Ok(Some(packet));

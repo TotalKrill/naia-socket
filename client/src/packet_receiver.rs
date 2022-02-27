@@ -1,6 +1,6 @@
 use naia_socket_shared::{link_condition_logic, LinkConditionerConfig, TimeQueue};
 
-use super::{error::NaiaClientSocketError, packet::Packet, server_addr::ServerAddr};
+use super::{error::NaiaClientSocketError, server_addr::ServerAddr};
 
 /// Used to receive packets from the Client Socket
 #[derive(Clone)]
@@ -15,7 +15,7 @@ impl PacketReceiver {
     }
 
     /// Receives a packet from the Client Socket
-    pub fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError> {
+    pub fn receive(&mut self) -> Result<Option<Box<[u8]>>, NaiaClientSocketError> {
         return self.inner.receive();
     }
 
@@ -28,7 +28,7 @@ impl PacketReceiver {
 /// Used to receive packets from the Client Socket
 pub trait PacketReceiverTrait: PacketReceiverClone + Send + Sync {
     /// Receives a packet from the Client Socket
-    fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError>;
+    fn receive(&mut self) -> Result<Option<Box<[u8]>>, NaiaClientSocketError>;
     /// Get the Server's Socket address
     fn server_addr(&self) -> ServerAddr;
 }
@@ -38,7 +38,7 @@ pub trait PacketReceiverTrait: PacketReceiverClone + Send + Sync {
 pub struct ConditionedPacketReceiver {
     inner_receiver: Box<dyn PacketReceiverTrait>,
     link_conditioner_config: LinkConditionerConfig,
-    time_queue: TimeQueue<Packet>,
+    time_queue: TimeQueue<Box<[u8]>>,
 }
 
 impl ConditionedPacketReceiver {
@@ -54,11 +54,11 @@ impl ConditionedPacketReceiver {
         }
     }
 
-    fn process_packet(&mut self, packet: Packet) {
+    fn process_packet(&mut self, payload: Box<[u8]>) {
         link_condition_logic::process_packet(
             &self.link_conditioner_config,
             &mut self.time_queue,
-            packet,
+            payload,
         );
     }
 
@@ -66,13 +66,13 @@ impl ConditionedPacketReceiver {
         self.time_queue.has_item()
     }
 
-    fn receive(&mut self) -> Packet {
+    fn receive(&mut self) -> Box<[u8]> {
         self.time_queue.pop_item().unwrap()
     }
 }
 
 impl PacketReceiverTrait for ConditionedPacketReceiver {
-    fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError> {
+    fn receive(&mut self) -> Result<Option<Box<[u8]>>, NaiaClientSocketError> {
         loop {
             match self.inner_receiver.receive() {
                 Ok(option) => match option {

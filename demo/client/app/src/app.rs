@@ -8,7 +8,7 @@ cfg_if! {
     }
 }
 
-use naia_client_socket::{Packet, PacketReceiver, PacketSender, ServerAddr, Socket, Timer};
+use naia_client_socket::{PacketReceiver, PacketSender, ServerAddr, Socket, Timer};
 
 use naia_socket_demo_shared::{shared_config, PING_MSG, PONG_MSG};
 
@@ -37,7 +37,7 @@ impl App {
     pub fn update(&mut self) {
         match self.packet_receiver.receive() {
             Ok(Some(packet)) => {
-                let message_from_server = String::from_utf8_lossy(packet.payload());
+                let message_from_server = String::from_utf8_lossy(&packet);
 
                 let server_addr = match self.packet_receiver.server_addr() {
                     ServerAddr::Found(addr) => addr.to_string(),
@@ -61,8 +61,7 @@ impl App {
                         };
                         info!("Client send -> {}: {}", server_addr, message_to_server);
 
-                        self.packet_sender
-                            .send(Packet::new(message_to_server.into_bytes()));
+                        self.packet_sender.send(message_to_server.as_bytes());
                     }
                 }
             }

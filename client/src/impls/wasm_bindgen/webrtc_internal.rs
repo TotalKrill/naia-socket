@@ -14,7 +14,6 @@ use web_sys::{
 };
 
 use super::addr_cell::AddrCell;
-use crate::Packet;
 
 #[derive(Deserialize, Clone)]
 pub struct SessionAnswer {
@@ -43,7 +42,7 @@ pub struct JsSessionResponse {
 pub fn webrtc_initialize(
     server_url: Url,
     rtc_endpoint_path: String,
-    msg_queue: Rc<RefCell<VecDeque<Packet>>>,
+    msg_queue: Rc<RefCell<VecDeque<Box<[u8]>>>>,
     addr_cell: AddrCell,
 ) -> RtcDataChannel {
     let server_url_str = format!("{}{}", server_url, rtc_endpoint_path);
@@ -87,7 +86,7 @@ pub fn webrtc_initialize(
                             let uarray: js_sys::Uint8Array = js_sys::Uint8Array::new(&arraybuf);
                             let mut body = vec![0; uarray.length() as usize];
                             uarray.copy_to(&mut body[..]);
-                            msg_queue_3.borrow_mut().push_back(Packet::new(body));
+                            msg_queue_3.borrow_mut().push_back(body.into_boxed_slice());
                         }
                     });
                 let channel_onmsg_closure = Closure::wrap(channel_onmsg_func);

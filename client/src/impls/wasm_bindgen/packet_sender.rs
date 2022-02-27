@@ -3,13 +3,13 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 use web_sys::RtcDataChannel;
 
 use super::addr_cell::AddrCell;
-use crate::{server_addr::ServerAddr, Packet};
+use crate::server_addr::ServerAddr;
 
 /// Handles sending messages to the Server for a given Client Socket
 #[derive(Clone)]
 pub struct PacketSender {
     data_channel: RtcDataChannel,
-    dropped_outgoing_messages: Rc<RefCell<VecDeque<Packet>>>,
+    dropped_outgoing_messages: Rc<RefCell<VecDeque<Box<[u8]>>>>,
     server_addr: AddrCell,
 }
 
@@ -18,7 +18,7 @@ impl PacketSender {
     /// reference to a list of dropped messages
     pub fn new(
         data_channel: RtcDataChannel,
-        dropped_outgoing_messages: Rc<RefCell<VecDeque<Packet>>>,
+        dropped_outgoing_messages: Rc<RefCell<VecDeque<Box<[u8]>>>>,
         server_addr: AddrCell,
     ) -> Self {
         PacketSender {
@@ -29,29 +29,21 @@ impl PacketSender {
     }
 
     /// Send a Packet to the Server
-    pub fn send(&mut self, packet: Packet) {
+    pub fn send(&self, payload: &[u8]) {
         self.resend_dropped_messages();
 
-        if let Err(err) = self.data_channel.send_with_u8_array(&packet.payload()) {
+        if let Err(err) = self.data_channel.send_with_u8_array(payload) {
             log::info!("error when sending packet: {:?}", err);
 
             self.dropped_outgoing_messages
                 .borrow_mut()
-                .push_back(packet);
+                .push_back(payload.into());
         }
     }
 
-    fn resend_dropped_messages(&mut self) {
-        if !self.dropped_outgoing_messages.borrow().is_empty() {
-            if let Some(dropped_packets) = {
-                let mut dom = self.dropped_outgoing_messages.borrow_mut();
-                let dropped_packets: Vec<Packet> = dom.drain(..).collect::<Vec<Packet>>();
-                Some(dropped_packets)
-            } {
-                for dropped_packet in dropped_packets {
-                    self.send(dropped_packet);
-                }
-            }
+    fn resend_dropped_messages(&self) {
+        if let Some(dropped_packet) = self.dropped_outgoing_messages.borrow_mut().pop_front() {
+            self.send(&dropped_packet);
         }
     }
 

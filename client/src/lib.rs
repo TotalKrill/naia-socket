@@ -32,7 +32,6 @@ cfg_if! {
 mod error;
 mod impls;
 mod io;
-mod packet;
 mod packet_receiver;
 mod server_addr;
 
@@ -40,7 +39,6 @@ pub use naia_socket_shared::Timer;
 
 pub use error::NaiaClientSocketError;
 pub use impls::{PacketSender, Socket};
-pub use packet::Packet;
 pub use packet_receiver::PacketReceiver;
 pub use server_addr::ServerAddr;
 
