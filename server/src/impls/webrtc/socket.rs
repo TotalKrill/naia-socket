@@ -72,7 +72,7 @@ impl AsyncSocketTrait for Socket {
                         Next::FromClientMessage(
                             match from_client_result {
                                 Ok(msg) => {
-                                    Ok(Packet::new(msg.remote_addr, msg.message.as_ref().to_vec()))
+                                    Ok(Packet::new(msg.remote_addr, msg.message.as_ref().into()))
                                 }
                                 Err(err) => { Err(err) }
                             }
@@ -96,15 +96,13 @@ impl AsyncSocketTrait for Socket {
                     }
                 },
                 Next::ToClientMessage(packet) => {
-                    let address = packet.address();
-
                     match self
                         .rtc_server
-                        .send(packet.payload(), MessageType::Binary, &address)
+                        .send(&packet.payload, MessageType::Binary, &packet.address)
                         .await
                     {
                         Err(_) => {
-                            return Err(NaiaServerSocketError::SendError(address));
+                            return Err(NaiaServerSocketError::SendError(packet.address));
                         }
                         _ => {}
                     }

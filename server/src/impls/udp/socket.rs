@@ -83,22 +83,19 @@ impl AsyncSocketTrait for Socket {
             match next {
                 Next::FromClientMessage(from_client_message) => match from_client_message {
                     Ok((message_len, message_address)) => {
-                        let payload: Vec<u8> = self.receive_buffer[0..message_len]
-                            .iter()
-                            .cloned()
-                            .collect();
-                        return Ok(Packet::new_raw(message_address, payload.into_boxed_slice()));
+                        return Ok(Packet::new(
+                            message_address,
+                            self.receive_buffer[0..message_len].into(),
+                        ));
                     }
                     Err(err) => {
                         return Err(NaiaServerSocketError::Wrapped(Box::new(err)));
                     }
                 },
                 Next::ToClientMessage(packet) => {
-                    let address = packet.address();
-
-                    match self.socket.send_to(packet.payload(), address).await {
+                    match self.socket.send_to(&packet.payload, packet.address).await {
                         Err(_) => {
-                            return Err(NaiaServerSocketError::SendError(address));
+                            return Err(NaiaServerSocketError::SendError(packet.address));
                         }
                         _ => {}
                     }
