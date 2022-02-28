@@ -18,4 +18,14 @@ impl Timestamp {
             }
         }
     }
+
+    /// Convert to u64
+    pub fn to_u64(&self) -> u64 {
+        self.time
+    }
+
+    /// Convert from u64
+    pub fn from_u64(value: &u64) -> Self {
+        Self { time: *value }
+    }
 }
