@@ -36,15 +36,16 @@ impl App {
     pub fn update(&mut self) {
         match self.packet_receiver.receive() {
             Ok(Some(packet)) => {
-                let address = packet.address();
-                let message_from_client = String::from_utf8_lossy(packet.payload());
-                info!("Server recv <- {}: {}", address, message_from_client);
+                let message_from_client = String::from_utf8_lossy(&packet.payload);
+                info!("Server recv <- {}: {}", packet.address, message_from_client);
 
                 if message_from_client.eq(PING_MSG) {
                     let message_to_client: String = PONG_MSG.to_string();
-                    info!("Server send -> {}: {}", address, message_to_client);
-                    self.packet_sender
-                        .send(Packet::new(address, message_to_client.into_bytes()));
+                    info!("Server send -> {}: {}", packet.address, message_to_client);
+                    self.packet_sender.send(Packet::new(
+                        packet.address,
+                        message_to_client.as_bytes().into(),
+                    ));
                 }
             }
             Ok(None) => {}
