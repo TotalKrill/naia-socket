@@ -1,6 +1,5 @@
 use std::{io::Error as IoError, net::SocketAddr};
 
-use async_trait::async_trait;
 use futures_channel::mpsc;
 use futures_util::{pin_mut, select, FutureExt, StreamExt};
 use webrtc_unreliable::{
@@ -9,10 +8,7 @@ use webrtc_unreliable::{
 
 use naia_socket_shared::{parse_server_url, url_to_socket_addr, SocketConfig};
 
-use crate::{
-    async_socket::AsyncSocketTrait, error::NaiaServerSocketError, packet::Packet,
-    server_addrs::ServerAddrs,
-};
+use crate::{error::NaiaServerSocketError, packet::Packet, server_addrs::ServerAddrs};
 
 use super::session::start_session_server;
 
@@ -48,11 +44,8 @@ impl Socket {
 
         socket
     }
-}
 
-#[async_trait]
-impl AsyncSocketTrait for Socket {
-    async fn receive(&mut self) -> Result<Packet, NaiaServerSocketError> {
+    pub async fn receive(&mut self) -> Result<Packet, NaiaServerSocketError> {
         enum Next {
             FromClientMessage(Result<Packet, IoError>),
             ToClientMessage(Packet),
@@ -111,7 +104,7 @@ impl AsyncSocketTrait for Socket {
         }
     }
 
-    fn sender(&self) -> mpsc::Sender<Packet> {
+    pub fn sender(&self) -> mpsc::Sender<Packet> {
         return self.to_client_sender.clone();
     }
 }

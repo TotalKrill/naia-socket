@@ -16,7 +16,6 @@ extern crate log;
 #[macro_use]
 extern crate cfg_if;
 
-mod async_socket;
 mod error;
 mod impls;
 mod io;

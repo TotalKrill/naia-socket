@@ -7,7 +7,6 @@ use naia_socket_shared::SocketConfig;
 use crate::{executor, impls::Socket as AsyncSocket, io::Io};
 
 use super::{
-    async_socket::AsyncSocketTrait,
     packet_receiver::{
         ConditionedPacketReceiverImpl, PacketReceiver, PacketReceiverImpl, PacketReceiverTrait,
     },
