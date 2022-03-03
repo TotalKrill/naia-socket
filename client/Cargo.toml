@@ -22,7 +22,7 @@ mquad = [ "naia-socket-shared/mquad", "miniquad" ]
 
 [dependencies]
 naia-socket-shared = { path = "../shared", version = "=0.8.0" }
-cfg-if = "0.1.10"
+cfg-if = { version = "0.1.10" }
 log = { version = "0.4" }
 wasm-bindgen = { version = "0.2.68", optional = true  }
 js-sys = { version = "0.3", optional = true  }

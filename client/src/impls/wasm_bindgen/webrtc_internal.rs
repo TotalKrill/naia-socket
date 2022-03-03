@@ -2,9 +2,9 @@ extern crate log;
 
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use log::info;
-
 use js_sys::{Array, Object, Reflect};
+use log::info;
+use serde_derive::Deserialize;
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
 use web_sys::{
     ErrorEvent, MessageEvent, ProgressEvent, RtcConfiguration, RtcDataChannel, RtcDataChannelInit,
