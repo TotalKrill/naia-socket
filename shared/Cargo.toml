@@ -21,9 +21,8 @@ wbindgen = [ "wasm-bindgen", "js-sys" ]
 mquad = [ ]
 
 [dependencies]
-cfg-if = "0.1.10"
-local_ipaddress = "0.1.3"
-log = "0.4"
+cfg-if = { version = "0.1.10" }
+log = { version = "0.4" }
 url = { version = "2.2.2" }
 wasm-bindgen = { version = "0.2.45", optional = true }
 js-sys = { version = "0.3", optional = true }

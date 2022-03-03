@@ -41,8 +41,7 @@ impl Socket {
         let addr_cell = AddrCell::new();
         let message_queue = Rc::new(RefCell::new(VecDeque::new()));
         let data_channel = webrtc_initialize(
-            server_url,
-            self.config.rtc_endpoint_path.clone(),
+            format!("{}{}", server_url, self.config.rtc_endpoint_path.clone()),
             message_queue.clone(),
             addr_cell.clone(),
         );

@@ -3,7 +3,6 @@ extern crate log;
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use log::info;
-use url::Url;
 
 use js_sys::{Array, Object, Reflect};
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
@@ -40,13 +39,10 @@ pub struct JsSessionResponse {
 
 #[allow(unused_must_use)]
 pub fn webrtc_initialize(
-    server_url: Url,
-    rtc_endpoint_path: String,
+    server_url_str: String,
     msg_queue: Rc<RefCell<VecDeque<Box<[u8]>>>>,
     addr_cell: AddrCell,
 ) -> RtcDataChannel {
-    let server_url_str = format!("{}{}", server_url, rtc_endpoint_path);
-
     // Set up Ice Servers
     let ice_server_config_urls = Array::new();
     ice_server_config_urls.push(&JsValue::from("stun:stun.l.google.com:19302"));
