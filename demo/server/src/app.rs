@@ -1,4 +1,4 @@
-use naia_server_socket::{Packet, PacketReceiver, PacketSender, ServerAddrs, Socket};
+use naia_server_socket::{PacketReceiver, PacketSender, ServerAddrs, Socket};
 
 use naia_socket_demo_shared::{shared_config, PING_MSG, PONG_MSG};
 
@@ -35,17 +35,15 @@ impl App {
 
     pub fn update(&mut self) {
         match self.packet_receiver.receive() {
-            Ok(Some(packet)) => {
-                let message_from_client = String::from_utf8_lossy(&packet.payload);
-                info!("Server recv <- {}: {}", packet.address, message_from_client);
+            Ok(Some((address, payload))) => {
+                let message_from_client = String::from_utf8_lossy(&payload);
+                info!("Server recv <- {}: {}", address, message_from_client);
 
                 if message_from_client.eq(PING_MSG) {
                     let message_to_client: String = PONG_MSG.to_string();
-                    info!("Server send -> {}: {}", packet.address, message_to_client);
-                    self.packet_sender.send(Packet::new(
-                        packet.address,
-                        message_to_client.as_bytes().into(),
-                    ));
+                    info!("Server send -> {}: {}", address, message_to_client);
+                    self.packet_sender
+                        .send(&address, message_to_client.as_bytes());
                 }
             }
             Ok(None) => {}

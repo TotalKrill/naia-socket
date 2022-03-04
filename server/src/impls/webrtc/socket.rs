@@ -8,7 +8,7 @@ use webrtc_unreliable::{
 
 use naia_socket_shared::{parse_server_url, url_to_socket_addr, SocketConfig};
 
-use crate::{error::NaiaServerSocketError, packet::Packet, server_addrs::ServerAddrs};
+use crate::{error::NaiaServerSocketError, server_addrs::ServerAddrs};
 
 use super::session::start_session_server;
 
@@ -19,8 +19,8 @@ const CLIENT_CHANNEL_SIZE: usize = 8;
 
 pub struct Socket {
     rtc_server: RtcServer,
-    to_client_sender: mpsc::Sender<Packet>,
-    to_client_receiver: mpsc::Receiver<Packet>,
+    to_client_sender: mpsc::Sender<(SocketAddr, Box<[u8]>)>,
+    to_client_receiver: mpsc::Receiver<(SocketAddr, Box<[u8]>)>,
 }
 
 impl Socket {
@@ -45,10 +45,10 @@ impl Socket {
         socket
     }
 
-    pub async fn receive(&mut self) -> Result<Packet, NaiaServerSocketError> {
+    pub async fn receive(&mut self) -> Result<(SocketAddr, Box<[u8]>), NaiaServerSocketError> {
         enum Next {
-            FromClientMessage(Result<Packet, IoError>),
-            ToClientMessage(Packet),
+            FromClientMessage(Result<(SocketAddr, Box<[u8]>), IoError>),
+            ToClientMessage((SocketAddr, Box<[u8]>)),
         }
 
         loop {
@@ -65,7 +65,7 @@ impl Socket {
                         Next::FromClientMessage(
                             match from_client_result {
                                 Ok(msg) => {
-                                    Ok(Packet::new(msg.remote_addr, msg.message.as_ref().into()))
+                                    Ok((msg.remote_addr, msg.message.as_ref().into()))
                                 }
                                 Err(err) => { Err(err) }
                             }
@@ -81,21 +81,21 @@ impl Socket {
 
             match next {
                 Next::FromClientMessage(from_client_message) => match from_client_message {
-                    Ok(packet) => {
-                        return Ok(packet);
+                    Ok((address, payload)) => {
+                        return Ok((address, payload));
                     }
                     Err(err) => {
                         return Err(NaiaServerSocketError::Wrapped(Box::new(err)));
                     }
                 },
-                Next::ToClientMessage(packet) => {
+                Next::ToClientMessage((address, payload)) => {
                     match self
                         .rtc_server
-                        .send(&packet.payload, MessageType::Binary, &packet.address)
+                        .send(&payload, MessageType::Binary, &address)
                         .await
                     {
                         Err(_) => {
-                            return Err(NaiaServerSocketError::SendError(packet.address));
+                            return Err(NaiaServerSocketError::SendError(address));
                         }
                         _ => {}
                     }
@@ -104,7 +104,7 @@ impl Socket {
         }
     }
 
-    pub fn sender(&self) -> mpsc::Sender<Packet> {
+    pub fn sender(&self) -> mpsc::Sender<(SocketAddr, Box<[u8]>)> {
         return self.to_client_sender.clone();
     }
 }

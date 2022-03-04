@@ -103,7 +103,7 @@ async fn serve(mut session_endpoint: SessionEndpoint, mut stream: Arc<Async<TcpS
 
                 if rtc_url_match {
                     if str.to_lowercase().starts_with("content-length: ") {
-                        let (first, last) = str.split_at(16);
+                        let (_, last) = str.split_at(16);
                         str = last.to_string();
                         content_length = str.parse::<usize>().ok();
                     } else if str.len() == 0 {

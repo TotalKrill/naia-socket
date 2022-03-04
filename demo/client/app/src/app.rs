@@ -8,7 +8,7 @@ cfg_if! {
     }
 }
 
-use naia_client_socket::{PacketReceiver, PacketSender, ServerAddr, Socket, Timer};
+use naia_client_socket::{shared::Timer, PacketReceiver, PacketSender, ServerAddr, Socket};
 
 use naia_socket_demo_shared::{shared_config, PING_MSG, PONG_MSG};
 

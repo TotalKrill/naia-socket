@@ -19,7 +19,6 @@ extern crate cfg_if;
 mod error;
 mod impls;
 mod io;
-mod packet;
 mod packet_receiver;
 mod packet_sender;
 mod server_addrs;
@@ -30,7 +29,6 @@ pub mod executor;
 
 pub use error::NaiaServerSocketError;
 pub use naia_socket_shared as shared;
-pub use packet::Packet;
 pub use packet_receiver::PacketReceiver;
 pub use packet_sender::PacketSender;
 pub use server_addrs::ServerAddrs;
