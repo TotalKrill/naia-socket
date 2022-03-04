@@ -1,7 +1,6 @@
-use crossbeam::channel::Receiver;
 use std::net::SocketAddr;
 
-use naia_socket_shared::{link_condition_logic, LinkConditionerConfig, TimeQueue};
+use crossbeam::channel::Receiver;
 
 use super::error::NaiaServerSocketError;
 
@@ -61,74 +60,6 @@ impl PacketReceiverTrait for PacketReceiverImpl {
             Err(_) => {
                 return Ok(None);
             }
-        }
-    }
-}
-
-/// Used to receive packets from the Server Socket
-#[derive(Clone)]
-pub struct ConditionedPacketReceiverImpl {
-    channel_receiver: Receiver<Result<(SocketAddr, Box<[u8]>), NaiaServerSocketError>>,
-    link_conditioner_config: LinkConditionerConfig,
-    time_queue: TimeQueue<(SocketAddr, Box<[u8]>)>,
-    last_payload: Option<Box<[u8]>>,
-}
-
-impl ConditionedPacketReceiverImpl {
-    /// Creates a new PacketReceiver
-    pub fn new(
-        channel_receiver: Receiver<Result<(SocketAddr, Box<[u8]>), NaiaServerSocketError>>,
-        link_conditioner_config: &LinkConditionerConfig,
-    ) -> Self {
-        ConditionedPacketReceiverImpl {
-            channel_receiver,
-            link_conditioner_config: link_conditioner_config.clone(),
-            time_queue: TimeQueue::new(),
-            last_payload: None,
-        }
-    }
-
-    fn process_packet(&mut self, packet: (SocketAddr, Box<[u8]>)) {
-        link_condition_logic::process_packet(
-            &self.link_conditioner_config,
-            &mut self.time_queue,
-            packet,
-        );
-    }
-
-    fn has_packet(&self) -> bool {
-        self.time_queue.has_item()
-    }
-
-    fn receive(&mut self) -> (SocketAddr, Box<[u8]>) {
-        self.time_queue.pop_item().unwrap()
-    }
-}
-
-impl PacketReceiverTrait for ConditionedPacketReceiverImpl {
-    fn receive(&mut self) -> Result<Option<(SocketAddr, &[u8])>, NaiaServerSocketError> {
-        loop {
-            match self.channel_receiver.try_recv() {
-                Ok(result) => match result {
-                    Err(_) => {
-                        break; //TODO: Handle error here
-                    }
-                    Ok(packet) => {
-                        self.process_packet(packet);
-                    }
-                },
-                Err(_) => {
-                    break; //TODO: Handle error here
-                }
-            }
-        }
-
-        if self.has_packet() {
-            let (address, payload) = self.receive();
-            self.last_payload = Some(payload);
-            return Ok(Some((address, self.last_payload.as_ref().unwrap())));
-        } else {
-            return Ok(None);
         }
     }
 }

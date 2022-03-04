@@ -10,8 +10,9 @@ use log::info;
 use naia_socket_shared::{parse_server_url, url_to_socket_addr, SocketConfig};
 
 use crate::{
+    conditioned_packet_receiver::ConditionedPacketReceiver,
     io::Io,
-    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
+    packet_receiver::{PacketReceiver, PacketReceiverTrait},
 };
 
 use super::{packet_receiver::PacketReceiverImpl, packet_sender::PacketSender};

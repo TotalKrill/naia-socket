@@ -4,6 +4,7 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use js_sys::{Array, Object, Reflect};
 use log::info;
+use tinyjson::JsonValue;
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
 use web_sys::{
     ErrorEvent, MessageEvent, ProgressEvent, RtcConfiguration, RtcDataChannel, RtcDataChannelInit,
@@ -12,7 +13,6 @@ use web_sys::{
 };
 
 use super::addr_cell::AddrCell;
-use tinyjson::JsonValue;
 
 #[derive(Clone)]
 pub struct SessionAnswer {
