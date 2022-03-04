@@ -3,7 +3,6 @@ members = [
     "client",
     "server",
     "shared",
-    "native_webrtc",
     "demo/server",
     "demo/client/app",
     "demo/client/wasm_bindgen",

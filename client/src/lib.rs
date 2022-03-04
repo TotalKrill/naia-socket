@@ -26,7 +26,7 @@ mod io;
 mod packet_receiver;
 mod server_addr;
 
-pub use naia_socket_shared::Timer;
+pub use naia_socket_shared as shared;
 
 pub use error::NaiaClientSocketError;
 pub use impls::{PacketSender, Socket};

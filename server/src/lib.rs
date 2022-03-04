@@ -29,6 +29,7 @@ mod socket;
 pub mod executor;
 
 pub use error::NaiaServerSocketError;
+pub use naia_socket_shared as shared;
 pub use packet::Packet;
 pub use packet_receiver::PacketReceiver;
 pub use packet_sender::PacketSender;
