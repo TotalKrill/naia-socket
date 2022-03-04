@@ -18,6 +18,7 @@ use webrtc::peer_connection::peer_connection_state::RTCPeerConnectionState;
 use webrtc::peer_connection::sdp::session_description::RTCSessionDescription;
 
 use reqwest::Client;
+use tinyjson::JsonValue;
 
 const MESSAGE_SIZE: usize = 1500;
 
@@ -157,6 +158,8 @@ async fn main() -> Result<()> {
     };
     let mut response_string = response.text().await.unwrap();
 
+    let session_response: JsSessionResponse = get_session_response(response_string.as_str());
+
     // Apply the answer as the remote description
     //peer_connection.set_remote_description(answer).await?;
 
@@ -220,4 +223,45 @@ async fn write_loop(data_channel: Arc<webrtc::data::data_channel::DataChannel>) 
     }
 
     Ok(())
+}
+
+#[derive(Clone)]
+pub struct SessionAnswer {
+    pub sdp: String,
+}
+
+pub struct SessionCandidate {
+    pub candidate: String,
+    pub sdp_m_line_index: u16,
+    pub sdp_mid: String,
+}
+
+pub struct JsSessionResponse {
+    pub answer: SessionAnswer,
+    pub candidate: SessionCandidate,
+}
+
+fn get_session_response(input: &str) -> JsSessionResponse {
+    let json_obj: JsonValue = input.parse().unwrap();
+
+    let sdp_opt: Option<&String> = json_obj["answer"]["sdp"].get();
+    let sdp: String = sdp_opt.unwrap().clone();
+
+    let candidate_opt: Option<&String> = json_obj["candidate"]["candidate"].get();
+    let candidate: String = candidate_opt.unwrap().clone();
+
+    let sdp_m_line_index_opt: Option<&f64> = json_obj["candidate"]["sdpMLineIndex"].get();
+    let sdp_m_line_index: u16 = *(sdp_m_line_index_opt.unwrap()) as u16;
+
+    let sdp_mid_opt: Option<&String> = json_obj["candidate"]["sdpMid"].get();
+    let sdp_mid: String = sdp_mid_opt.unwrap().clone();
+
+    JsSessionResponse {
+        answer: SessionAnswer { sdp },
+        candidate: SessionCandidate {
+            candidate,
+            sdp_m_line_index,
+            sdp_mid,
+        },
+    }
 }
