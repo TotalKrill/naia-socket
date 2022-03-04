@@ -16,10 +16,10 @@ extern crate log;
 #[macro_use]
 extern crate cfg_if;
 
-mod async_socket;
+mod conditioned_packet_receiver;
 mod error;
 mod impls;
-mod packet;
+mod io;
 mod packet_receiver;
 mod packet_sender;
 mod server_addrs;
@@ -29,7 +29,7 @@ mod socket;
 pub mod executor;
 
 pub use error::NaiaServerSocketError;
-pub use packet::Packet;
+pub use naia_socket_shared as shared;
 pub use packet_receiver::PacketReceiver;
 pub use packet_sender::PacketSender;
 pub use server_addrs::ServerAddrs;

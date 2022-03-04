@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::{server_addr::ServerAddr, Packet};
+use crate::server_addr::ServerAddr;
 
 /// Handles sending messages to the Server for a given Client Socket
 #[derive(Clone)]
@@ -23,14 +23,14 @@ impl PacketSender {
     }
 
     /// Send a Packet to the Server
-    pub fn send(&mut self, packet: Packet) {
+    pub fn send(&self, payload: &[u8]) {
         //send it
         if let Err(_) = self
             .local_socket
             .as_ref()
             .lock()
             .unwrap()
-            .send_to(&packet.payload(), self.server_addr)
+            .send_to(payload, self.server_addr)
         {
             //TODO: handle this error
         }

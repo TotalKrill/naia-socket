@@ -6,16 +6,12 @@ use std::{
 use log::info;
 
 use async_io::Async;
-use async_trait::async_trait;
 use futures_channel::mpsc;
 use futures_util::{pin_mut, select, FutureExt, StreamExt};
 
 use naia_socket_shared::SocketConfig;
 
-use crate::{
-    async_socket::AsyncSocketTrait, error::NaiaServerSocketError, packet::Packet,
-    server_addrs::ServerAddrs,
-};
+use crate::{error::NaiaServerSocketError, server_addrs::ServerAddrs};
 
 const CLIENT_CHANNEL_SIZE: usize = 8;
 
@@ -23,8 +19,8 @@ const CLIENT_CHANNEL_SIZE: usize = 8;
 /// unordered & unreliable network protocol
 pub struct Socket {
     socket: Async<UdpSocket>,
-    to_client_sender: mpsc::Sender<Packet>,
-    to_client_receiver: mpsc::Receiver<Packet>,
+    to_client_sender: mpsc::Sender<(SocketAddr, Box<[u8]>)>,
+    to_client_receiver: mpsc::Receiver<(SocketAddr, Box<[u8]>)>,
     receive_buffer: Vec<u8>,
 }
 
@@ -48,14 +44,11 @@ impl Socket {
                                                * of webrtc-unreliable should make that happen */
         }
     }
-}
 
-#[async_trait]
-impl AsyncSocketTrait for Socket {
-    async fn receive(&mut self) -> Result<Packet, NaiaServerSocketError> {
+    pub async fn receive(&mut self) -> Result<(SocketAddr, Box<[u8]>), NaiaServerSocketError> {
         enum Next {
             FromClientMessage(Result<(usize, SocketAddr), IoError>),
-            ToClientMessage(Packet),
+            ToClientMessage((SocketAddr, Box<[u8]>)),
         }
 
         loop {
@@ -83,20 +76,14 @@ impl AsyncSocketTrait for Socket {
             match next {
                 Next::FromClientMessage(from_client_message) => match from_client_message {
                     Ok((message_len, message_address)) => {
-                        let payload: Vec<u8> = self.receive_buffer[0..message_len]
-                            .iter()
-                            .cloned()
-                            .collect();
-                        return Ok(Packet::new_raw(message_address, payload.into_boxed_slice()));
+                        return Ok((message_address, self.receive_buffer[0..message_len].into()));
                     }
                     Err(err) => {
                         return Err(NaiaServerSocketError::Wrapped(Box::new(err)));
                     }
                 },
-                Next::ToClientMessage(packet) => {
-                    let address = packet.address();
-
-                    match self.socket.send_to(packet.payload(), address).await {
+                Next::ToClientMessage((address, payload)) => {
+                    match self.socket.send_to(&payload, address).await {
                         Err(_) => {
                             return Err(NaiaServerSocketError::SendError(address));
                         }
@@ -107,7 +94,7 @@ impl AsyncSocketTrait for Socket {
         }
     }
 
-    fn sender(&self) -> mpsc::Sender<Packet> {
+    pub fn sender(&self) -> mpsc::Sender<(SocketAddr, Box<[u8]>)> {
         return self.to_client_sender.clone();
     }
 }

@@ -1,6 +1,5 @@
 use std::{io::Error as IoError, net::SocketAddr};
 
-use async_trait::async_trait;
 use futures_channel::mpsc;
 use futures_util::{pin_mut, select, FutureExt, StreamExt};
 use webrtc_unreliable::{
@@ -9,10 +8,7 @@ use webrtc_unreliable::{
 
 use naia_socket_shared::{parse_server_url, url_to_socket_addr, SocketConfig};
 
-use crate::{
-    async_socket::AsyncSocketTrait, error::NaiaServerSocketError, packet::Packet,
-    server_addrs::ServerAddrs,
-};
+use crate::{error::NaiaServerSocketError, server_addrs::ServerAddrs};
 
 use super::session::start_session_server;
 
@@ -23,8 +19,8 @@ const CLIENT_CHANNEL_SIZE: usize = 8;
 
 pub struct Socket {
     rtc_server: RtcServer,
-    to_client_sender: mpsc::Sender<Packet>,
-    to_client_receiver: mpsc::Receiver<Packet>,
+    to_client_sender: mpsc::Sender<(SocketAddr, Box<[u8]>)>,
+    to_client_receiver: mpsc::Receiver<(SocketAddr, Box<[u8]>)>,
 }
 
 impl Socket {
@@ -48,14 +44,11 @@ impl Socket {
 
         socket
     }
-}
 
-#[async_trait]
-impl AsyncSocketTrait for Socket {
-    async fn receive(&mut self) -> Result<Packet, NaiaServerSocketError> {
+    pub async fn receive(&mut self) -> Result<(SocketAddr, Box<[u8]>), NaiaServerSocketError> {
         enum Next {
-            FromClientMessage(Result<Packet, IoError>),
-            ToClientMessage(Packet),
+            FromClientMessage(Result<(SocketAddr, Box<[u8]>), IoError>),
+            ToClientMessage((SocketAddr, Box<[u8]>)),
         }
 
         loop {
@@ -72,7 +65,7 @@ impl AsyncSocketTrait for Socket {
                         Next::FromClientMessage(
                             match from_client_result {
                                 Ok(msg) => {
-                                    Ok(Packet::new(msg.remote_addr, msg.message.as_ref().to_vec()))
+                                    Ok((msg.remote_addr, msg.message.as_ref().into()))
                                 }
                                 Err(err) => { Err(err) }
                             }
@@ -88,19 +81,17 @@ impl AsyncSocketTrait for Socket {
 
             match next {
                 Next::FromClientMessage(from_client_message) => match from_client_message {
-                    Ok(packet) => {
-                        return Ok(packet);
+                    Ok((address, payload)) => {
+                        return Ok((address, payload));
                     }
                     Err(err) => {
                         return Err(NaiaServerSocketError::Wrapped(Box::new(err)));
                     }
                 },
-                Next::ToClientMessage(packet) => {
-                    let address = packet.address();
-
+                Next::ToClientMessage((address, payload)) => {
                     match self
                         .rtc_server
-                        .send(packet.payload(), MessageType::Binary, &address)
+                        .send(&payload, MessageType::Binary, &address)
                         .await
                     {
                         Err(_) => {
@@ -113,7 +104,7 @@ impl AsyncSocketTrait for Socket {
         }
     }
 
-    fn sender(&self) -> mpsc::Sender<Packet> {
+    pub fn sender(&self) -> mpsc::Sender<(SocketAddr, Box<[u8]>)> {
         return self.to_client_sender.clone();
     }
 }

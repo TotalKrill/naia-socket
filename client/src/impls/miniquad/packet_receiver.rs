@@ -1,30 +1,32 @@
 use crate::{
-    error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait,
-    server_addr::ServerAddr,
+    error::NaiaClientSocketError, packet_receiver::PacketReceiverTrait, server_addr::ServerAddr,
 };
 
 use super::shared::{naia_resend_dropped_messages, ERROR_QUEUE, MESSAGE_QUEUE, SERVER_ADDR};
 
 /// Handles receiving messages from the Server through a given Client Socket
 #[derive(Clone)]
-pub struct PacketReceiverImpl;
+pub struct PacketReceiverImpl {
+    last_payload: Option<Box<[u8]>>,
+}
 
 impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the RtcDataChannel and a
     /// reference to a list of dropped messages
     pub fn new() -> Self {
-        PacketReceiverImpl {}
+        PacketReceiverImpl { last_payload: None }
     }
 }
 
 impl PacketReceiverTrait for PacketReceiverImpl {
-    fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError> {
+    fn receive(&mut self) -> Result<Option<&[u8]>, NaiaClientSocketError> {
         unsafe {
             naia_resend_dropped_messages();
 
             if let Some(msg_queue) = &mut MESSAGE_QUEUE {
                 if let Some(message) = msg_queue.pop_front() {
-                    return Ok(Some(Packet::new_raw(message)));
+                    self.last_payload = Some(message);
+                    return Ok(Some(self.last_payload.as_ref().unwrap()));
                 }
             }
 

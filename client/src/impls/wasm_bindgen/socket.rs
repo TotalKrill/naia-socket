@@ -4,7 +4,11 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use naia_socket_shared::{parse_server_url, SocketConfig};
 
-use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
+use crate::{
+    conditioned_packet_receiver::ConditionedPacketReceiver,
+    io::Io,
+    packet_receiver::{PacketReceiver, PacketReceiverTrait},
+};
 
 use super::{
     addr_cell::AddrCell, packet_receiver::PacketReceiverImpl, packet_sender::PacketSender,
@@ -13,25 +17,18 @@ use super::{
 
 /// A client-side socket which communicates with an underlying unordered &
 /// unreliable protocol
-
 pub struct Socket {
     config: SocketConfig,
     io: Option<Io>,
 }
 
-/// Contains internal socket packet sender/receiver
-
-struct Io {
-    /// Used to send packets through the socket
-    pub packet_sender: PacketSender,
-    /// Used to receive packets from the socket
-    pub packet_receiver: PacketReceiver,
-}
-
 impl Socket {
     /// Create a new Socket
-    pub fn new(config: SocketConfig) -> Self {
-        Socket { config, io: None }
+    pub fn new(config: &SocketConfig) -> Self {
+        Socket {
+            config: config.clone(),
+            io: None,
+        }
     }
 
     /// Connects to the given server address
@@ -45,8 +42,7 @@ impl Socket {
         let addr_cell = AddrCell::new();
         let message_queue = Rc::new(RefCell::new(VecDeque::new()));
         let data_channel = webrtc_initialize(
-            server_url,
-            self.config.rtc_endpoint_path.clone(),
+            format!("{}{}", server_url, self.config.rtc_endpoint_path.clone()),
             message_queue.clone(),
             addr_cell.clone(),
         );
@@ -63,7 +59,7 @@ impl Socket {
         let sender = packet_sender.clone();
         let receiver: Box<dyn PacketReceiverTrait> = {
             let inner_receiver = Box::new(packet_receiver.clone());
-            if let Some(config) = &self.config.link_condition_config {
+            if let Some(config) = &self.config.link_condition {
                 Box::new(ConditionedPacketReceiver::new(inner_receiver, config))
             } else {
                 inner_receiver

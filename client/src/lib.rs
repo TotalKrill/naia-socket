@@ -15,31 +15,22 @@ extern crate log;
 extern crate cfg_if;
 
 cfg_if! {
-    if #[cfg(all(target_arch = "wasm32", feature = "wbindgen"))] {
-        #[macro_use]
-        extern crate serde_derive;
-    }
-    else {
-    }
-}
-
-cfg_if! {
     if #[cfg(target_arch = "wasm32")] {
         mod wasm_utils;
     } else {}
 }
 
+mod conditioned_packet_receiver;
 mod error;
 mod impls;
-mod packet;
+mod io;
 mod packet_receiver;
 mod server_addr;
 
-pub use naia_socket_shared::Timer;
+pub use naia_socket_shared as shared;
 
 pub use error::NaiaClientSocketError;
 pub use impls::{PacketSender, Socket};
-pub use packet::Packet;
 pub use packet_receiver::PacketReceiver;
 pub use server_addr::ServerAddr;
 

@@ -2,7 +2,11 @@ use std::collections::VecDeque;
 
 use naia_socket_shared::{parse_server_url, SocketConfig};
 
-use crate::packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait};
+use crate::{
+    conditioned_packet_receiver::ConditionedPacketReceiver,
+    io::Io,
+    packet_receiver::{PacketReceiver, PacketReceiverTrait},
+};
 
 use super::{
     packet_receiver::PacketReceiverImpl,
@@ -17,18 +21,13 @@ pub struct Socket {
     io: Option<Io>,
 }
 
-/// Contains internal socket packet sender/receiver
-struct Io {
-    /// Used to send packets through the socket
-    pub packet_sender: PacketSender,
-    /// Used to receive packets from the socket
-    pub packet_receiver: PacketReceiver,
-}
-
 impl Socket {
     /// Create a new Socket
-    pub fn new(config: SocketConfig) -> Self {
-        Socket { config, io: None }
+    pub fn new(config: &SocketConfig) -> Self {
+        Socket {
+            config: config.clone(),
+            io: None,
+        }
     }
 
     /// Connects to the given server address
@@ -44,7 +43,7 @@ impl Socket {
             );
         }
 
-        let conditioner_config = self.config.link_condition_config.clone();
+        let conditioner_config = self.config.link_condition.clone();
 
         let sender = PacketSender::new();
         let receiver: Box<dyn PacketReceiverTrait> = {

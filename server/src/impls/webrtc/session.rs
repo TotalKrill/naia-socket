@@ -98,12 +98,14 @@ async fn serve(mut session_endpoint: SessionEndpoint, mut stream: Arc<Async<TcpS
             if byte == b'\r' {
                 continue;
             } else if byte == b'\n' {
-                let str = String::from_utf8(line.clone()).unwrap();
+                let mut str = String::from_utf8(line.clone()).unwrap();
                 line.clear();
 
                 if rtc_url_match {
-                    if str.starts_with("Content-Length: ") {
-                        content_length = str.replace("Content-Length: ", "").parse::<usize>().ok();
+                    if str.to_lowercase().starts_with("content-length: ") {
+                        let (_, last) = str.split_at(16);
+                        str = last.to_string();
+                        content_length = str.parse::<usize>().ok();
                     } else if str.len() == 0 {
                         headers_read = true;
                     }

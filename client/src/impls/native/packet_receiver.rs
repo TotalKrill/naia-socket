@@ -5,8 +5,7 @@ use std::{
 };
 
 use crate::{
-    error::NaiaClientSocketError, packet::Packet, packet_receiver::PacketReceiverTrait,
-    server_addr::ServerAddr,
+    error::NaiaClientSocketError, packet_receiver::PacketReceiverTrait, server_addr::ServerAddr,
 };
 
 /// Handles receiving messages from the Server through a given Client Socket
@@ -30,19 +29,12 @@ impl PacketReceiverImpl {
 }
 
 impl PacketReceiverTrait for PacketReceiverImpl {
-    fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError> {
+    fn receive(&mut self) -> Result<Option<&[u8]>, NaiaClientSocketError> {
         let buffer: &mut [u8] = self.receive_buffer.as_mut();
-        match self
-            .local_socket
-            .as_ref()
-            .lock()
-            .unwrap()
-            .recv_from(buffer)
-            .map(move |(recv_len, address)| (&buffer[..recv_len], address))
-        {
-            Ok((payload, address)) => {
+        match self.local_socket.as_ref().lock().unwrap().recv_from(buffer) {
+            Ok((recv_len, address)) => {
                 if address == self.server_addr {
-                    return Ok(Some(Packet::new(payload.to_vec())));
+                    return Ok(Some(&buffer[..recv_len]));
                 } else {
                     let err_message = format!(
                         "Received packet from unknown sender with a socket address of: {}",

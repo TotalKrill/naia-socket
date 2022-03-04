@@ -4,13 +4,11 @@ use futures_util::SinkExt;
 
 use naia_socket_shared::SocketConfig;
 
-use crate::{executor, impls::Socket as AsyncSocket};
+use crate::{executor, impls::Socket as AsyncSocket, io::Io};
 
 use super::{
-    async_socket::AsyncSocketTrait,
-    packet_receiver::{
-        ConditionedPacketReceiverImpl, PacketReceiver, PacketReceiverImpl, PacketReceiverTrait,
-    },
+    conditioned_packet_receiver::ConditionedPacketReceiverImpl,
+    packet_receiver::{PacketReceiver, PacketReceiverImpl, PacketReceiverTrait},
     packet_sender::PacketSender,
     server_addrs::ServerAddrs,
 };
@@ -21,22 +19,17 @@ pub struct Socket {
     io: Option<Io>,
 }
 
-/// Contains internal socket packet sender/receiver
-struct Io {
-    /// Used to send packets through the socket
-    pub packet_sender: PacketSender,
-    /// Used to receive packets from the socket
-    pub packet_receiver: PacketReceiver,
-}
-
 impl Socket {
     /// Create a new Socket
-    pub fn new(config: SocketConfig) -> Self {
-        Socket { config, io: None }
+    pub fn new(config: &SocketConfig) -> Self {
+        Socket {
+            config: config.clone(),
+            io: None,
+        }
     }
 
     /// Listens on the Socket for incoming communication from Clients
-    pub fn listen(&mut self, server_addrs: ServerAddrs) {
+    pub fn listen(&mut self, server_addrs: &ServerAddrs) {
         if self.io.is_some() {
             panic!("Socket already listening!");
         }
@@ -78,7 +71,7 @@ impl Socket {
         })
         .detach();
 
-        let conditioner_config = self.config.link_condition_config.clone();
+        let conditioner_config = self.config.link_condition.clone();
 
         let receiver: Box<dyn PacketReceiverTrait> = match &conditioner_config {
             Some(config) => Box::new(ConditionedPacketReceiverImpl::new(

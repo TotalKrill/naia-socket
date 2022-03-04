@@ -1,7 +1,3 @@
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-
-use crate::packet_reader::PacketReader;
-
 use std::time::SystemTime;
 
 /// A Timestamp for a moment in time that can be read/written to/from a byte
@@ -21,16 +17,13 @@ impl Timestamp {
         Timestamp { time }
     }
 
-    /// Write the Timestamp into an outgoing packet's byte stream
-    pub fn write(&self, buffer: &mut Vec<u8>) {
-        buffer.write_u64::<BigEndian>(self.time).unwrap();
+    /// Convert to u64
+    pub fn to_u64(&self) -> u64 {
+        self.time
     }
 
-    /// Read a Timestamp from an incoming packet's byte stream
-    pub fn read(reader: &mut PacketReader) -> Self {
-        let cursor = reader.cursor();
-        let time = cursor.read_u64::<BigEndian>().unwrap();
-
-        Timestamp { time }
+    /// Convert from u64
+    pub fn from_u64(value: &u64) -> Self {
+        Self { time: *value }
     }
 }

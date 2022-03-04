@@ -1,5 +1,5 @@
 use super::shared::{naia_create_u8_array, naia_send, SERVER_ADDR};
-use crate::{Packet, ServerAddr};
+use crate::ServerAddr;
 
 /// Handles sending messages to the Server for a given Client Socket
 #[derive(Clone)]
@@ -13,9 +13,8 @@ impl PacketSender {
     }
 
     /// Send a Packet to the Server
-    pub fn send(&mut self, packet: Packet) {
+    pub fn send(&self, payload: &[u8]) {
         unsafe {
-            let payload: &[u8] = packet.payload();
             let ptr = payload.as_ptr();
             let len = payload.len();
             let js_obj = naia_create_u8_array(ptr as _, len as _);

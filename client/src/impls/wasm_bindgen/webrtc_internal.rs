@@ -2,10 +2,9 @@ extern crate log;
 
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use log::info;
-use url::Url;
-
 use js_sys::{Array, Object, Reflect};
+use log::info;
+use tinyjson::JsonValue;
 use wasm_bindgen::{prelude::*, JsCast, JsValue};
 use web_sys::{
     ErrorEvent, MessageEvent, ProgressEvent, RtcConfiguration, RtcDataChannel, RtcDataChannelInit,
@@ -14,40 +13,54 @@ use web_sys::{
 };
 
 use super::addr_cell::AddrCell;
-use crate::Packet;
 
-#[derive(Deserialize, Clone)]
+#[derive(Clone)]
 pub struct SessionAnswer {
     pub sdp: String,
-
-    #[serde(rename = "type")]
-    pub _type: String,
 }
 
-#[derive(Deserialize)]
 pub struct SessionCandidate {
     pub candidate: String,
-    #[serde(rename = "sdpMLineIndex")]
     pub sdp_m_line_index: u16,
-    #[serde(rename = "sdpMid")]
     pub sdp_mid: String,
 }
 
-#[derive(Deserialize)]
 pub struct JsSessionResponse {
     pub answer: SessionAnswer,
     pub candidate: SessionCandidate,
 }
 
+fn get_session_response(input: &str) -> JsSessionResponse {
+    let json_obj: JsonValue = input.parse().unwrap();
+
+    let sdp_opt: Option<&String> = json_obj["answer"]["sdp"].get();
+    let sdp: String = sdp_opt.unwrap().clone();
+
+    let candidate_opt: Option<&String> = json_obj["candidate"]["candidate"].get();
+    let candidate: String = candidate_opt.unwrap().clone();
+
+    let sdp_m_line_index_opt: Option<&f64> = json_obj["candidate"]["sdpMLineIndex"].get();
+    let sdp_m_line_index: u16 = *(sdp_m_line_index_opt.unwrap()) as u16;
+
+    let sdp_mid_opt: Option<&String> = json_obj["candidate"]["sdpMid"].get();
+    let sdp_mid: String = sdp_mid_opt.unwrap().clone();
+
+    JsSessionResponse {
+        answer: SessionAnswer { sdp },
+        candidate: SessionCandidate {
+            candidate,
+            sdp_m_line_index,
+            sdp_mid,
+        },
+    }
+}
+
 #[allow(unused_must_use)]
 pub fn webrtc_initialize(
-    server_url: Url,
-    rtc_endpoint_path: String,
-    msg_queue: Rc<RefCell<VecDeque<Packet>>>,
+    server_url_str: String,
+    msg_queue: Rc<RefCell<VecDeque<Box<[u8]>>>>,
     addr_cell: AddrCell,
 ) -> RtcDataChannel {
-    let server_url_str = format!("{}{}", server_url, rtc_endpoint_path);
-
     // Set up Ice Servers
     let ice_server_config_urls = Array::new();
     ice_server_config_urls.push(&JsValue::from("stun:stun.l.google.com:19302"));
@@ -87,7 +100,7 @@ pub fn webrtc_initialize(
                             let uarray: js_sys::Uint8Array = js_sys::Uint8Array::new(&arraybuf);
                             let mut body = vec![0; uarray.length() as usize];
                             uarray.copy_to(&mut body[..]);
-                            msg_queue_3.borrow_mut().push_back(Packet::new(body));
+                            msg_queue_3.borrow_mut().push_back(body.into_boxed_slice());
                         }
                     });
                 let channel_onmsg_closure = Closure::wrap(channel_onmsg_func);
@@ -133,8 +146,10 @@ pub fn webrtc_initialize(
                         move |_: ProgressEvent| {
                             if request_2.status().unwrap() == 200 {
                                 let response_string = request_2.response_text().unwrap().unwrap();
+
                                 let session_response: JsSessionResponse =
-                                    serde_json::from_str(response_string.as_str()).unwrap();
+                                    get_session_response(response_string.as_str());
+
                                 let session_response_answer: SessionAnswer =
                                     session_response.answer.clone();
 

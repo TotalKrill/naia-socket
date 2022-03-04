@@ -16,19 +16,15 @@ extern crate cfg_if;
 /// conditions
 pub mod link_condition_logic;
 
-mod find_my_ip_address;
 mod impls;
 mod link_conditioner_config;
-mod packet_reader;
-mod shared_config;
+mod socket_config;
 mod time_queue;
 mod url_parse;
 
-pub use find_my_ip_address::find_my_ip_address;
 pub use impls::{Instant, Random, Timer, Timestamp};
 pub use link_conditioner_config::LinkConditionerConfig;
-pub use packet_reader::PacketReader;
-pub use shared_config::SocketConfig;
+pub use socket_config::SocketConfig;
 pub use time_queue::TimeQueue;
 pub use url_parse::{parse_server_url, url_to_socket_addr};
 
