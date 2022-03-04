@@ -3,8 +3,9 @@ use std::collections::VecDeque;
 use naia_socket_shared::{parse_server_url, SocketConfig};
 
 use crate::{
+    conditioned_packet_receiver::ConditionedPacketReceiver,
     io::Io,
-    packet_receiver::{ConditionedPacketReceiver, PacketReceiver, PacketReceiverTrait},
+    packet_receiver::{PacketReceiver, PacketReceiverTrait},
 };
 
 use super::{
