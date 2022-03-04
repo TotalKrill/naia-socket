@@ -1,6 +1,6 @@
 [package]
 name = "naia-client-socket"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["connorcarpenter <connorcarpenter@gmail.com>"]
 workspace = ".."
 description = "Abstraction to expose common API over a UDP socket on Linux, and a unreliable WebRTC datachannel on the browser"
@@ -21,10 +21,10 @@ wbindgen = [ "naia-socket-shared/wbindgen", "wasm-bindgen", "js-sys", "web_sys",
 mquad = [ "naia-socket-shared/mquad", "miniquad" ]
 
 [dependencies]
-naia-socket-shared = { path = "../shared", version = "=0.8.0" }
+naia-socket-shared = { path = "../shared", version = "=0.9.0" }
 cfg-if = { version = "0.1.10" }
 log = { version = "0.4" }
-wasm-bindgen = { version = "0.2.68", optional = true  }
+wasm-bindgen = { version = "0.2.45", optional = true  }
 js-sys = { version = "0.3", optional = true  }
 web_sys = { version = "0.3.22", package = "web-sys", features = [
     "RtcDataChannel", "RtcDataChannelInit", "RtcDataChannelType",
