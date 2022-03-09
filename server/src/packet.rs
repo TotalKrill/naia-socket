@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
 /// A Packet that can be sent to a Client
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Packet {
     /// The address from which it came, or to which it will go
     address: SocketAddr,

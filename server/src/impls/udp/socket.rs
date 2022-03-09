@@ -3,7 +3,7 @@ use std::{
     net::{SocketAddr, UdpSocket},
 };
 
-use log::info;
+use log::{debug, info};
 
 use async_io::Async;
 use async_trait::async_trait;
