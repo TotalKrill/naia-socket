@@ -3,7 +3,7 @@ use naia_socket_shared::{link_condition_logic, LinkConditionerConfig, TimeQueue}
 use super::{error::NaiaClientSocketError, packet::Packet, server_addr::ServerAddr};
 
 /// Used to receive packets from the Client Socket
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct PacketReceiver {
     inner: Box<dyn PacketReceiverTrait>,
 }
@@ -26,7 +26,7 @@ impl PacketReceiver {
 }
 
 /// Used to receive packets from the Client Socket
-pub trait PacketReceiverTrait: PacketReceiverClone + Send + Sync {
+pub trait PacketReceiverTrait: std::fmt::Debug + PacketReceiverClone + Send + Sync {
     /// Receives a packet from the Client Socket
     fn receive(&mut self) -> Result<Option<Packet>, NaiaClientSocketError>;
     /// Get the Server's Socket address
@@ -34,7 +34,7 @@ pub trait PacketReceiverTrait: PacketReceiverClone + Send + Sync {
 }
 
 /// Used to receive packets from the Client Socket
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ConditionedPacketReceiver {
     inner_receiver: Box<dyn PacketReceiverTrait>,
     link_conditioner_config: LinkConditionerConfig,

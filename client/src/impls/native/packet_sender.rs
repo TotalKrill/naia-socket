@@ -6,7 +6,7 @@ use std::{
 use crate::{server_addr::ServerAddr, Packet};
 
 /// Handles sending messages to the Server for a given Client Socket
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct PacketSender {
     server_addr: SocketAddr,
     local_socket: Arc<Mutex<UdpSocket>>,

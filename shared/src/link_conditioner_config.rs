@@ -1,5 +1,5 @@
 /// Contains configuration required to initialize a LinkConditioner
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct LinkConditionerConfig {
     /// Delay to receive incoming messages in milliseconds
     pub incoming_latency: u32,

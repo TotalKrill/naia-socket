@@ -5,6 +5,7 @@ use futures_util::SinkExt;
 use naia_socket_shared::SocketConfig;
 
 use crate::{executor, impls::Socket as AsyncSocket};
+use log::*;
 
 use super::{
     async_socket::AsyncSocketTrait,
@@ -50,6 +51,7 @@ impl Socket {
 
         executor::spawn(async move {
             // Create async socket
+            debug!("setting up async socket: {:?}", server_addrs_clone);
             let mut async_socket = AsyncSocket::listen(server_addrs_clone, config_clone).await;
 
             sender_sender.send(async_socket.sender()).unwrap(); //TODO: handle result..

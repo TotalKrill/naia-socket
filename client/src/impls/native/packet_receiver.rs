@@ -17,6 +17,17 @@ pub struct PacketReceiverImpl {
     receive_buffer: Vec<u8>,
 }
 
+use std::fmt;
+impl fmt::Debug for PacketReceiverImpl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PacketReceiverImpl")
+            .field("server_address", &self.server_addr)
+            .field("local_socket", &self.local_socket)
+            .field("recieve_buffer", &format!("[omitted...]"))
+            .finish()
+    }
+}
+
 impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the Server's address & a
     /// reference back to the parent Socket

@@ -5,7 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use log::info;
+use log::{debug, info};
 
 use naia_socket_shared::{find_my_ip_address, parse_server_url, url_to_socket_addr, SocketConfig};
 
@@ -15,12 +15,14 @@ use super::{packet_receiver::PacketReceiverImpl, packet_sender::PacketSender};
 
 /// A client-side socket which communicates with an underlying unordered &
 /// unreliable protocol
+#[derive(Debug)]
 pub struct Socket {
     config: SocketConfig,
     io: Option<Io>,
 }
 
 /// Contains internal socket packet sender/receiver
+#[derive(Debug)]
 struct Io {
     /// Used to send packets through the socket
     pub packet_sender: PacketSender,
@@ -42,6 +44,7 @@ impl Socket {
 
         let server_url = parse_server_url(server_session_url);
         let server_socket_addr = url_to_socket_addr(&server_url);
+        debug!("server socket address: {:?}", server_socket_addr);
 
         let client_ip_address =
             find_my_ip_address().expect("cannot find host's current IP address");

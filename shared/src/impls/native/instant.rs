@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 /// Represents a specific moment in time
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Instant {
     inner: std::time::Instant,
 }
