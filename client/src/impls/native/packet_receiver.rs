@@ -12,7 +12,9 @@ use crate::{
 /// Handles receiving messages from the Server through a given Client Socket
 #[derive(Clone)]
 pub struct PacketReceiverImpl {
-    server_addr: SocketAddr,
+    /// The first response we get, is treated as the server, to block others
+    /// attempt from responding
+    server_addr: Option<SocketAddr>,
     local_socket: Arc<Mutex<UdpSocket>>,
     receive_buffer: Vec<u8>,
 }
@@ -31,9 +33,10 @@ impl fmt::Debug for PacketReceiverImpl {
 impl PacketReceiverImpl {
     /// Create a new PacketReceiver, if supplied with the Server's address & a
     /// reference back to the parent Socket
-    pub fn new(server_addr: SocketAddr, local_socket: Arc<Mutex<UdpSocket>>) -> Self {
+    pub fn new(local_socket: Arc<Mutex<UdpSocket>>) -> Self {
         PacketReceiverImpl {
-            server_addr,
+            /// This is set upon first reception of message
+            server_addr: None,
             local_socket,
             receive_buffer: vec![0; 1472],
         }
@@ -52,15 +55,24 @@ impl PacketReceiverTrait for PacketReceiverImpl {
             .map(move |(recv_len, address)| (&buffer[..recv_len], address))
         {
             Ok((payload, address)) => {
-                if address == self.server_addr {
-                    return Ok(Some(Packet::new(payload.to_vec())));
-                } else {
-                    let err_message = format!(
-                        "Received packet from unknown sender with a socket address of: {}",
-                        address
-                    );
-                    return Err(NaiaClientSocketError::Message(err_message.to_string()));
+                if let None = self.server_addr {
+                    self.server_addr = Some(address);
                 }
+                if let Some(server_addr) = self.server_addr {
+                    if address == server_addr {
+                        return Ok(Some(Packet::new(payload.to_vec())));
+                    } else {
+                        let err_message = format!(
+                            "Received packet from unknown sender with a socket
+                 address of: {}",
+                            address
+                        );
+                        log::error!("{}", err_message);
+                        return Err(NaiaClientSocketError::Message(err_message.to_string()));
+                    }
+                }
+
+                unreachable!("Server address should have been set before");
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
                 //just didn't receive anything this time
@@ -74,6 +86,9 @@ impl PacketReceiverTrait for PacketReceiverImpl {
 
     /// Get the Server's Socket address
     fn server_addr(&self) -> ServerAddr {
-        ServerAddr::Found(self.server_addr)
+        match self.server_addr {
+            Some(server_addr) => ServerAddr::Found(server_addr),
+            None => ServerAddr::Finding,
+        }
     }
 }
