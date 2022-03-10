@@ -6,7 +6,7 @@ use super::addr_cell::AddrCell;
 use crate::{server_addr::ServerAddr, Packet};
 
 /// Handles sending messages to the Server for a given Client Socket
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct PacketSender {
     data_channel: RtcDataChannel,
     dropped_outgoing_messages: Rc<RefCell<VecDeque<Packet>>>,

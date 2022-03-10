@@ -16,7 +16,7 @@ use web_sys::{
 use super::addr_cell::AddrCell;
 use crate::Packet;
 
-#[derive(Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SessionAnswer {
     pub sdp: String,
 
@@ -24,7 +24,7 @@ pub struct SessionAnswer {
     pub _type: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct SessionCandidate {
     pub candidate: String,
     #[serde(rename = "sdpMLineIndex")]
@@ -33,7 +33,7 @@ pub struct SessionCandidate {
     pub sdp_mid: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct JsSessionResponse {
     pub answer: SessionAnswer,
     pub candidate: SessionCandidate,

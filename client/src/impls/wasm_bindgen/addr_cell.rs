@@ -3,10 +3,11 @@ use std::{cell::RefCell, rc::Rc};
 use crate::{server_addr::ServerAddr, wasm_utils::candidate_to_addr};
 
 // MaybeAddr
+#[derive(Debug)]
 struct MaybeAddr(pub ServerAddr);
 
 // AddrCell
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AddrCell {
     cell: Rc<RefCell<MaybeAddr>>,
 }

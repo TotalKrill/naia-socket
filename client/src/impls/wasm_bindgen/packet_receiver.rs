@@ -7,7 +7,7 @@ use crate::{
 };
 
 /// Handles receiving messages from the Server through a given Client Socket
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct PacketReceiverImpl {
     message_queue: Rc<RefCell<VecDeque<Packet>>>,
     server_addr: AddrCell,

@@ -5,6 +5,7 @@ use std::time::Duration;
 /// state. The Timer can be reset at an given time, or manually set to start
 /// "Ringing" again.
 
+#[derive(Debug)]
 pub struct Timer {
     duration: f64,
     last: f64,
